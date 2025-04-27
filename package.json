@@ -1,0 +1,31 @@
+{
+  "name": "videobelajar-rest",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js  --watch src/ --watch package.json --watch .env",
+    "make:migration": "knex migrate:make --knexfile src/config/database.js",
+    "make:seed": "knex seed:make --knexfile src/config/database.js",
+    "migrate": "knex migrate:latest --knexfile src/config/database.js",
+    "migrate:up": "knex migrate:up --knexfile src/config/database.js",
+    "migrate:down": "knex migrate:down --knexfile src/config/database.js",
+    "seed": "knex seed:run --knexfile src/config/database.js --specific",
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "innersh1ne",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.41.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "knex": "^3.1.0",
+    "pg": "^8.15.6"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^9.7.0",
+    "nodemon": "^3.1.10"
+  }
+}
