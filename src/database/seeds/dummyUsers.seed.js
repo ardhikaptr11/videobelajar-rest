@@ -29,9 +29,11 @@ const users = Array.from({ length: 10 }, () => createRandomUsers());
 /**
  * @param { import("knex").Knex } knex
  *
- * @returns { Promise<void> } 
+ * @returns { Promise<void> }
  */
 exports.seed = async function (knex) {
+	const defaultPassword = `${user.fullName.split(" ")[0].toLowerCase()}123!`;
+
 	console.log("Truncating table");
 	await knex.raw("TRUNCATE TABLE users RESTART IDENTITY CASCADE");
 
@@ -44,7 +46,7 @@ exports.seed = async function (knex) {
 				email: user.email,
 				gender: user.gender,
 				phone: user.phone,
-				password: `${user.fullName.split(" ")[0].toLowerCase()}123!`
+				password: defaultPassword
 			});
 		})
 	);
