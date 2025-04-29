@@ -1,4 +1,11 @@
-const { create: createUser, getAll: getAllUsers, getUserById, getUserByEmail } = require("../models/users");
+const {
+	createUser,
+	getAllUsers,
+	getUserById,
+	getUserByEmail,
+	updateUser,
+	deleteUser
+} = require("../models/users.model");
 
 /**
  * @param { import("express").Request } req
@@ -110,4 +117,102 @@ const getOneUser = async (req, res, _next) => {
 	}
 };
 
-module.exports = { createNewUser, getUsers, getOneUser };
+/**
+ * @param { import("express").Request } req
+ * @param { import("express").Response } res
+ * @param { import("express").NextFunction } _next
+ */
+const updateUserData = async (req, res, _next) => {
+	try {
+		const { id } = req.params;
+		const data = req.body;
+		const fieldPaths = req.query.field;
+
+		const isUserExist = await getUserById(id);
+		if (!isUserExist) {
+			return res.status(400).json({
+				code: 400,
+				message: "User Not Found.",
+				data: null
+			});
+		}
+
+		const dataFields = Object.keys(data);
+
+		if (dataFields.length < 1) {
+			return res.status(422).json({
+				code: 422,
+				message: "No data given.",
+				data: null
+			});
+		}
+
+		if (dataFields.length > 3) {
+			return res.status(422).json({
+				code: 422,
+				message: "Too many fields.",
+				data: null
+			});
+		}
+
+		const isQueryStringMatch = Array.isArray(fieldPaths)
+			? fieldPaths.every((field) => dataFields.includes(field)) && fieldPaths.length === dataFields.length
+			: fieldPaths === dataFields[0] && dataFields.length === 1;
+
+		if (!isQueryStringMatch) {
+			return res.status(422).json({
+				code: 422,
+				message: "Unmatched query string(s).",
+				data: null
+			});
+		}
+
+		const updatedUserData = await updateUser(id, data);
+		res.status(200).json({
+			code: 200,
+			message: "Successfully Updated User!",
+			updatedData: updatedUserData[0]
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			code: 500,
+			message: "Internal Server Error"
+		});
+	}
+};
+
+/**
+ * @param { import("express").Request } req
+ * @param { import("express").Response } res
+ * @param { import("express").NextFunction } _next
+ */
+const deleteUserData = async (req, res, _next) => {
+	const { id } = req.params;
+
+	try {
+		const isUserExist = await getUserById(id);
+		if (!isUserExist) {
+			return res.status(400).json({
+				code: 400,
+				message: "User Not Found.",
+				data: null
+			});
+		}
+
+		await deleteUser(id);
+
+		return res.status(200).json({
+			code: 200,
+			message: "Successfully Delete User!",
+			data: null
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			code: 500,
+			message: "Internal Server Error"
+		});
+	}
+};
+module.exports = { createNewUser, getUsers, getOneUser, updateUserData, deleteUserData };
