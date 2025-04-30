@@ -1,4 +1,4 @@
-const userModel = require("../../models/users");
+const userModel = require("../../models/users.model");
 
 const { Faker, id_ID } = require("@faker-js/faker");
 
@@ -41,7 +41,7 @@ exports.seed = async function (knex) {
 
 	await Promise.all(
 		users.map((user) => {
-			return userModel.create({
+			return userModel.createUser({
 				fullName: user.fullName,
 				email: user.email,
 				gender: user.gender,
