@@ -90,9 +90,8 @@ const getUsers = async (_req, res, _next) => {
  * @param { import("express").NextFunction } _next
  */
 const getOneUser = async (req, res, _next) => {
-	const { id } = req.params;
-
 	try {
+		const { id } = req.params;
 		const user = await getUserById(id);
 
 		if (!user) {
@@ -125,7 +124,7 @@ const getOneUser = async (req, res, _next) => {
 const updateUserData = async (req, res, _next) => {
 	try {
 		const { id } = req.params;
-		const data = req.body;
+		const payload = req.body;
 		const fieldPaths = req.query.field;
 
 		const isUserExist = await getUserById(id);
@@ -137,9 +136,9 @@ const updateUserData = async (req, res, _next) => {
 			});
 		}
 
-		const dataFields = Object.keys(data);
+		const params = Object.keys(payload);
 
-		if (dataFields.length < 1) {
+		if (params.length < 1) {
 			return res.status(422).json({
 				code: 422,
 				message: "No data given.",
@@ -147,7 +146,7 @@ const updateUserData = async (req, res, _next) => {
 			});
 		}
 
-		if (dataFields.length > 3) {
+		if (params.length > 3) {
 			return res.status(422).json({
 				code: 422,
 				message: "Too many fields.",
@@ -156,8 +155,8 @@ const updateUserData = async (req, res, _next) => {
 		}
 
 		const isQueryStringMatch = Array.isArray(fieldPaths)
-			? fieldPaths.every((field) => dataFields.includes(field)) && fieldPaths.length === dataFields.length
-			: fieldPaths === dataFields[0] && dataFields.length === 1;
+			? fieldPaths.every((field) => params.includes(field)) && fieldPaths.length === params.length
+			: fieldPaths === params[0] && params.length === 1;
 
 		if (!isQueryStringMatch) {
 			return res.status(422).json({
@@ -171,7 +170,7 @@ const updateUserData = async (req, res, _next) => {
 		res.status(200).json({
 			code: 200,
 			message: "Successfully Updated User!",
-			updatedData: updatedUserData[0]
+			updatedData: updateUserData
 		});
 	} catch (error) {
 		console.error(error);
@@ -215,4 +214,5 @@ const deleteUserData = async (req, res, _next) => {
 		});
 	}
 };
+
 module.exports = { createNewUser, getUsers, getOneUser, updateUserData, deleteUserData };
