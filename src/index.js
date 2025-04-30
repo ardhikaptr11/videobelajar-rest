@@ -4,7 +4,6 @@ require("@dotenvx/dotenvx").config({ path: path.join(__dirname, "../.env") });
 
 const express = require("express");
 const routes = require("./routes");
-const userRouter = require("./routes/user.router");
 
 const app = express();
 
