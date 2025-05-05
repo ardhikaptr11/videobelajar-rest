@@ -5,8 +5,7 @@
 exports.up = (knex) => {
 	return knex.schema.createTable("modules", (table) => {
 		table.increments("module_id").primary();
-		table.string("name", 100).notNullable();
-		table.text("description");
+		table.string("title", 100).notNullable();
 		table
 			.integer("course_id")
 			.unsigned()
