@@ -12,10 +12,10 @@ const {
  * @param { import("express").Response } res
  * @param { import("express").NextFunction } _next
  */
-const createNewUser = async (req, res, _next) => {
+const handleCreateNewUser = async (req, res, _next) => {
 	try {
-		const { fullName, email, gender, phone, password } = req.body;
-		if (!fullName || !email || !gender || !phone || !password) {
+		const { full_name, email, gender, phone, password } = req.body;
+		if (!full_name || !email || !gender || !phone || !password) {
 			return res.status(422).json({
 				code: 422,
 				message: "Please make sure all fields are filled in.",
@@ -41,7 +41,7 @@ const createNewUser = async (req, res, _next) => {
 		}
 
 		await createUser({
-			fullName,
+			full_name,
 			email,
 			gender,
 			phone,
@@ -66,7 +66,7 @@ const createNewUser = async (req, res, _next) => {
  * @param { import("express").Response } res
  * @param { import("express").NextFunction } _next
  */
-const getUsers = async (_req, res, _next) => {
+const handleGetUsers = async (_req, res, _next) => {
 	try {
 		const users = await getAllUsers();
 
@@ -89,7 +89,7 @@ const getUsers = async (_req, res, _next) => {
  * @param { import("express").Response } res
  * @param { import("express").NextFunction } _next
  */
-const getOneUser = async (req, res, _next) => {
+const handleGetOneUser = async (req, res, _next) => {
 	try {
 		const { id } = req.params;
 		const user = await getUserById(id);
@@ -121,7 +121,7 @@ const getOneUser = async (req, res, _next) => {
  * @param { import("express").Response } res
  * @param { import("express").NextFunction } _next
  */
-const updateUserData = async (req, res, _next) => {
+const handleUpdateUserData = async (req, res, _next) => {
 	try {
 		const { id } = req.params;
 		const payload = req.body;
@@ -186,7 +186,7 @@ const updateUserData = async (req, res, _next) => {
  * @param { import("express").Response } res
  * @param { import("express").NextFunction } _next
  */
-const deleteUserData = async (req, res, _next) => {
+const handleDeleteUserData = async (req, res, _next) => {
 	const { id } = req.params;
 
 	try {
@@ -215,4 +215,4 @@ const deleteUserData = async (req, res, _next) => {
 	}
 };
 
-module.exports = { createNewUser, getUsers, getOneUser, updateUserData, deleteUserData };
+module.exports = { handleCreateNewUser, handleGetUsers, handleGetOneUser, handleUpdateUserData, handleDeleteUserData };
