@@ -11,7 +11,7 @@ router.get("/users", getUsers);
 // Get one user by ID
 router.get("/user/:id", getOneUser);
 // Update user
-router.patch("/user/update/:id", updateUserData);
+router.patch("/user/:id", updateUserData);
 // Delete user
 router.delete("/user/:id", deleteUserData);
 
