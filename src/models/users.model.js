@@ -5,13 +5,13 @@ const TABLE_NAME = "users";
 
 const createUser = async (data) => {
 	try {
-		const { fullName, email, gender, phone, password } = data;
+		const { full_name, email, gender, phone, password } = data;
 
 		const salt = await bcrypt.genSalt(10);
 		const hashedPassword = await bcrypt.hash(password, salt);
 
 		return knex(TABLE_NAME).insert({
-			fullName,
+			full_name,
 			email,
 			gender,
 			phone,
@@ -28,11 +28,11 @@ const createUser = async (data) => {
 };
 
 const getAllUsers = async () => {
-	return knex(TABLE_NAME).select("user_id", "fullName", "email", "gender", "phone").orderBy("user_id", "asc");
+	return knex(TABLE_NAME).select("user_id", "full_name", "email", "gender", "phone").orderBy("user_id", "asc");
 };
 
 const getUserById = async (userId) => {
-	return knex(TABLE_NAME).select("user_id", "fullName", "email", "gender", "phone").where("user_id", userId).first();
+	return knex(TABLE_NAME).select("user_id", "full_name", "email", "gender", "phone").where("user_id", userId).first();
 };
 
 const getUserByEmail = async (email) => {
@@ -40,17 +40,17 @@ const getUserByEmail = async (email) => {
 };
 
 const updateUser = async (userId, data) => {
-	const result = await knex(TABLE_NAME)
+	const [result] = await knex(TABLE_NAME)
 		.update(data)
 		.where("user_id", userId)
-		.returning(["user_id", "fullName", "email", "phone"]);
+		.returning(["user_id", "full_name", "email", "phone"]);
 
 	return result;
 };
 
 const deleteUser = async (userId) => {
 	return knex(TABLE_NAME).where("user_id", userId).del();
-}
+};
 
 module.exports = {
 	createUser,
