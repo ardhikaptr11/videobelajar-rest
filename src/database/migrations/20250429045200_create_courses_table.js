@@ -9,12 +9,11 @@ exports.up = (knex) => {
 		table.string("tagline").notNullable();
 		table.text("description").notNullable();
 		table.string("slug").notNullable();
-		table.integer("total_modules").notNullable();
 		table.integer("price").notNullable();
 		table.integer("discounted_price").defaultTo(0);
 		table.boolean("is_discount").defaultTo(false);
 		table.text("thumbnail_img_url").nullable();
-		table.timestamp("created_at").defaultTo(knex.fn.now());
+		table.timestamps({ useTimestamps: true, defaultToNow: true });
 	});
 };
 
