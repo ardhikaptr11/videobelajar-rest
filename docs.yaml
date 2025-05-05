@@ -1,0 +1,614 @@
+openapi: "3.0.0"
+servers:
+    - url: http://localhost:8765
+tags:
+    - name: Healthcheck
+    - name: User
+    - name: Course
+info:
+    contact:
+        name: Ardhika Putra
+    version: "1.0.0"
+    title: "Videobelajar REST API"
+    description: An API Documentation for Videobelajar Webapps
+
+paths:
+    /:
+        get:
+            tags:
+                - Healthcheck
+            description: Responds if the server is up and running
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/HealthcheckResponse"
+                            example:
+                                serverMessage: Server is up and running
+                                serverTime: 2025-05-04T10:33:43+00:00
+
+    /api/v1/courses:
+        get:
+            tags:
+                - Course
+            summary: Get All Courses
+            description: List all available course
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GetAllCoursesResponse"
+                            example:
+                                code: 200
+                                message: Courses succesfully retrieved!
+                                data:
+                                    [
+                                        {
+                                            course_id: 1,
+                                            name: Course 1,
+                                            slug: course-1,
+                                            tagline: Tagline for Course 1,
+                                            description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur in luctus ligula. Maecenas vulputate bibendum risus, in fringilla dui pretium.",
+                                            thumbnail_img_url: https://picsum.photos/id/1/420/230",
+                                            price: 599,
+                                            discounted_price: 0,
+                                            is_discount: false,
+                                            total_students_enrolled: 0,
+                                            categories:
+                                                [
+                                                    Category 1,
+                                                    Category 2,
+                                                    Category 3,
+                                                ],
+                                            modules:
+                                                {
+                                                    total: 3,
+                                                    list:
+                                                        [
+                                                            {
+                                                                module_id: 1,
+                                                                title: Module 1,
+                                                            },
+                                                            {
+                                                                module_id: 2,
+                                                                title: Moduele 2,
+                                                            },
+                                                            {
+                                                                module_id: 3,
+                                                                title: Module 3,
+                                                            },
+                                                        ],
+                                                },
+                                        },
+                                    ]
+                500:
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CodeAndMessage"
+                            example:
+                                code: 500
+                                message: Server encountered an error
+                                data: null
+
+    /api/v1/course/{id}:
+        parameters:
+            - name: id
+              description: A unique identifier for the user
+              in: path
+              required: true
+              schema:
+                  type: integer
+                  minimum: 1
+                  maximum: 9999
+                  example: 1
+        get:
+            tags:
+                - Course
+            summary: Get Course by ID
+            description: Get One Spesific Course
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GetOneCourseResponse"
+                            example:
+                                {
+                                    code: 200,
+                                    message: Course successfully retrieved!,
+                                    data:
+                                        {
+                                            course_id: 1,
+                                            name: Course 1,
+                                            slug: course-1,
+                                            tagline: Tagline for Course 1,
+                                            description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur in luctus ligula. Maecenas vulputate bibendum risus, in fringilla dui pretium.",
+                                            thumbnail_img_url: https://picsum.photos/id/1/420/230",
+                                            price: 599,
+                                            discounted_price: 0,
+                                            is_discount: false,
+                                            total_students_enrolled: 0,
+                                            categories:
+                                                [
+                                                    Category 1,
+                                                    Category 2,
+                                                    Category 3,
+                                                ],
+                                            modules:
+                                                {
+                                                    total: 3,
+                                                    list:
+                                                        [
+                                                            {
+                                                                module_id: 1,
+                                                                title: Module 1,
+                                                            },
+                                                            {
+                                                                module_id: 2,
+                                                                title: Moduele 2,
+                                                            },
+                                                            {
+                                                                module_id: 3,
+                                                                title: Module 3,
+                                                            },
+                                                        ],
+                                                },
+                                        },
+                                }
+                400:
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CodeAndMessage"
+                            example:
+                                code: 400
+                                message: Missing parameter
+                                data: null
+                404:
+                    description: Not Found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CodeAndMessage"
+                            example:
+                                code: 400
+                                message: Course not found
+                                data: null
+                500:
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CodeAndMessage"
+                            example:
+                                code: 500
+                                message: Server encountered an error
+                                data: null
+        patch:
+            tags:
+                - Course
+            summary: Update Course Data by ID
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateCourseInput"
+                        examples:
+                            successScenario:
+                                summary: Complete payload (success)
+                                value:
+                                    - name: "New Name for Course 1 "
+                                      tagline: "New Tagline for Course 1"
+                                      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate."
+                                      price: 599
+                                      discounted_price: 399
+                                      is_discount: true
+                                      thumbnail_img_url: "https://picsum.photos/id/1/400/200"
+                                      categories: ["Category 4", "Category 5"]
+                            allowedInDefault:
+                                summary: Allowed in `default` mode (success)
+                                description: In case `Category 1` and `Category 2` already exist and are accidentally written back in the `categories` . The server will add only `Category 6` and this is allowed and succeeds
+                                value:
+                                    - name: "New Name for Course 1 "
+                                      tagline: "New Tagline for Course 1"
+                                      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate."
+                                      price: 599
+                                      discounted_price: 399
+                                      is_discount: true
+                                      thumbnail_img_url: "https://picsum.photos/id/1/400/200"
+                                      categories:
+                                          [
+                                              "Category 1",
+                                              "Category 2",
+                                              "Category 6",
+                                          ]
+                            defaultModeError:
+                                summary: Causing error in `default` mode (categories were excluded)
+                                value:
+                                    - name: "New Name for Course 1 "
+                                      tagline: "New Tagline for Course 1"
+                                      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate."
+                                      price: 599
+                                      discounted_price: 399
+                                      is_discount: true
+                                      thumbnail_img_url: "https://picsum.photos/id/1/400/200"
+                            strictModeError:
+                                summary: Causing error in both mode (categories were empty)
+                                value:
+                                    - name: "New Name for Course 1 "
+                                      tagline: "New Tagline for Course 1"
+                                      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate."
+                                      price: 599
+                                      discounted_price: 399
+                                      is_discount: true
+                                      thumbnail_img_url: "https://picsum.photos/id/1/400/200"
+                                      categories: []
+            parameters:
+                - name: mode
+                  in: query
+                  schema:
+                      type: string
+                      enum: [default, strict]
+                      default: default
+                  description: |
+                      Mode for updating categories in course (if defined in the payload)
+                      `default`: overwrite old categories with new ones 
+                      `strict`: add new ones without overwriting them
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GetOneCourseResponse"
+                            examples:
+                                defaultMode:
+                                    summary: default mode
+                                    value:
+                                        code: 200
+                                        message: Course updated succesfully!
+                                        data:
+                                            - course_id: 1
+                                              name: New Name for Course 1
+                                              slug: new-name-for-course-1
+                                              tagline: New Tagline for Course 1
+                                              description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate."
+                                              price: 599
+                                              discounted_price: 399
+                                              is_discount: true
+                                              thumbnail_img_url: "https://picsum.photos/id/1/400/200"
+                                              categories:
+                                                  ["Category 4", "Category 5"]
+                                strictMode:
+                                    summary: strict mode
+                                    value:
+                                        code: 200
+                                        message: Course updated succesfully!
+                                        data:
+                                            - course_id: 1
+                                              name: New Name for Course 1
+                                              slug: new-name-for-course-1
+                                              tagline: New Tagline for Course 1
+                                              description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate."
+                                              price: 599
+                                              discounted_price: 399
+                                              is_discount: true
+                                              thumbnail_img_url: "https://picsum.photos/id/1/400/200"
+                                              categories:
+                                                  [
+                                                      "Category 1",
+                                                      "Category 2",
+                                                      "Category 3",
+                                                      "Category 4",
+                                                      "Category 5",
+                                                  ]
+                400:
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: number
+                                    message:
+                                        type: string
+                            examples:
+                                unknownMode:
+                                    summary: Unknown mode
+                                    description: Occurs when using modes other than `default` or `strict`
+                                    value:
+                                        code: 400
+                                        message: Mode must be either `default` or `strict`
+                                defaultModeError1:
+                                    summary: Categories were excluded (default mode)
+                                    description: Occurs when `categories` is not defined in the payload or is defined and it is empty
+                                    value:
+                                        code: 400
+                                        message: Failed to overwrite. No category provided
+                                defaultModeError2:
+                                    summary: Categories were empty (strict mode)
+                                    description: Occurs when `categories` is defined in the payload and it is empty
+                                    value:
+                                        code: 400
+                                        message: Failed to append. No category provided
+                                emptyPayload:
+                                    summary: Empty payload
+                                    value:
+                                        code: 400
+                                        message: Cannot proceed with empty data
+                409:
+                    description: Conflict
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CodeAndMessage"
+                            examples:
+                                defaultMode:
+                                    summary: default mode
+                                    value:
+                                        code: 409
+                                        message: Cannot override predefined categories with the exact same name
+                                strictMode:
+                                    summary: default mode
+                                    value:
+                                        code: 409
+                                        message: Course already has the intended category. Use a different name to start adding
+        delete:
+            tags:
+                - Course
+            summary: Delete Course by ID
+            description: Delete One Spesific Course
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CodeAndMessage"
+                            example:
+                                {
+                                    code: 200,
+                                    message: Course successfully deleted!,
+                                    data: null,
+                                }
+                404:
+                    description: Not Found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CodeAndMessage"
+                            example:
+                                code: 400,
+                                message: Course not found
+                                data: null
+                500:
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CodeAndMessage"
+                            example:
+                                code: 500
+                                message: Server encountered an error
+                                data: null
+
+    /api/v1/course:
+        post:
+            tags:
+                - Course
+            summary: Create a New Course
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateCourseInput"
+                        example:
+                            name: "Course 1"
+                            tagline: "Tagline for Course 1"
+                            description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur in luctus ligula. Maecenas vulputate bibendum risus, in fringilla dui pretium."
+                            price: 599
+                            thumbnail_img_url: "https://picsum.photos/id/1/420/230"
+                            categories:
+                                ["Category 1", "Category 2", "Category 3"]
+                            modules:
+                                [
+                                    { title: "Module 1" },
+                                    { title: "Module 2" },
+                                    { title: "Module 3" },
+                                ]
+            responses:
+                201:
+                    description: Created
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: number
+                                    message:
+                                        type: string
+                                    data:
+                                        type: object
+                                        properties:
+                                            course_id:
+                                                type: integer
+                                            name:
+                                                type: string
+                                            created_at:
+                                                type: string
+                            example:
+                                course_id: 1
+                                name: Course 1
+                                created_at: 2025-05-04T10:33:43+00:00
+                400:
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CodeAndMessage"
+                            example:
+                                code: 400
+                                message: Please make sure all fields are filled in
+                                data: null
+                409:
+                    description: Conflict
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CodeAndMessage"
+                            example:
+                                code: 409
+                                message: Course name already taken
+                                data: null
+                500:
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CodeAndMessage"
+                            example:
+                                code: 500
+                                message: Server encountered an error
+                                data: null
+components:
+    schemas:
+        HealthcheckResponse:
+            description: A message sent by the server
+            type: object
+            properties:
+                serverMessage:
+                    type: string
+                serverTime:
+                    type: string
+        CreateCourseInput:
+            type: object
+            required:
+                - name
+                - tagline
+                - description
+                - price
+                - thumbnail_img_url
+                - categories
+                - modules
+            properties:
+                name:
+                    type: string
+                tagline:
+                    type: string
+                description:
+                    type: string
+                price:
+                    type: integer
+                thumbnail_img_url:
+                    type: string
+                categories:
+                    type: array
+                    items:
+                        type: string
+                modules:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            title:
+                                type: string
+        UpdateCourseInput:
+            type: object
+            required:
+                - name
+                - tagline
+                - description
+                - price
+                - thumbnail_img_url
+                - modules
+            properties:
+                name:
+                    type: string
+                tagline:
+                    type: string
+                description:
+                    type: string
+                price:
+                    type: integer
+                thumbnail_img_url:
+                    type: string
+                discounted_price:
+                    type: integer
+                is_discount:
+                    type: boolean
+                categories:
+                    type: array
+                    items:
+                        type: string
+        GetOneCourseResponse:
+            type: object
+            properties:
+                user_id:
+                    type: integer
+                name:
+                    type: string
+                slug:
+                    type: string
+                tagline:
+                    type: string
+                description:
+                    type: string
+                price:
+                    type: integer
+                discounted_price:
+                    type: integer
+                is_discount:
+                    type: boolean
+                    default: false
+                thumbnail_img_url:
+                    type: string
+                total_students_enrolled:
+                    type: integer
+                categories:
+                    type: array
+                    items:
+                        type: string
+                modules:
+                    type: object
+                    properties:
+                        total:
+                            type: integer
+                        list:
+                            type: array
+                            items:
+                                type: object
+                                properties:
+                                    module_id:
+                                        type: integer
+                                    title:
+                                        type: string
+        GetAllCoursesResponse:
+            allOf:
+                - $ref: "#/components/schemas/CodeAndMessage"
+                - title: Data
+                  type: object
+                  properties:
+                      data:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/GetOneCourseResponse"
+        CodeAndMessage:
+            title: Head
+            type: object
+            properties:
+                code:
+                    type: number
+                message:
+                    type: string
