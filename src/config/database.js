@@ -29,7 +29,6 @@ const common = {
 module.exports = {
 	development: {
 		...common,
-		connection: process.env.PGURL,
 		seeds: {
 			directory: path.join(__dirname, "../database/seeds")
 		}
