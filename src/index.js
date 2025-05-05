@@ -1,5 +1,4 @@
 const path = require("path");
-
 require("@dotenvx/dotenvx").config({ path: path.join(__dirname, "../.env") });
 
 const express = require("express");
@@ -13,7 +12,10 @@ app.use(express.json());
 
 app.use(routes);
 
+swaggerDocs(app);
+
 const SERVER_PORT = process.env.SERVER_PORT || 8765;
+const NODE_ENV = process.env.NODE_ENV || "development";
 
 /**
  * @type { import("express").Request } _req
@@ -21,15 +23,20 @@ const SERVER_PORT = process.env.SERVER_PORT || 8765;
  * @type { import("express").NextFunction } _next
  */
 app.get("/api/v1", (_req, res, _next) => {
+	const baseUrl =
+		NODE_ENV === "development" ? `http://localhost:${SERVER_PORT}` : `https://${process.env.VERCEL_URL}`;
+
 	res.send({
-		serverMessage: `Server is up and running. Docs are available at http://localhost:${SERVER_PORT}/docs/api/v1`,
+		serverMessage: `Server is up and running. Docs are available at ${baseUrl}/docs/api/v1`,
 		serverTime: new Date().toLocaleString()
 	});
 });
 
-app.listen(process.env.SERVER_PORT || 8765, () => {
-	console.clear();
-	console.log(`Server is running on port ${SERVER_PORT}.`);
+if (NODE_ENV === "development") {
+	app.listen(SERVER_PORT, () => {
+		console.clear();
+		console.log(`Server is running on http://localhost:${SERVER_PORT}`);
+	});
+}
 
-	swaggerDocs(app, SERVER_PORT);
-});
+module.exports = app;
