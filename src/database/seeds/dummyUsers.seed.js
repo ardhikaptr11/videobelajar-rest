@@ -17,7 +17,7 @@ const createRandomUsers = () => {
 	});
 	const phone = customFaker.helpers.fromRegExp(/08[1-9][0-9]{7,10}/);
 	return {
-		fullName: `${firstName} ${lastName}`,
+		full_name: `${firstName} ${lastName}`,
 		email,
 		gender: sex,
 		phone
@@ -32,17 +32,18 @@ const users = Array.from({ length: 10 }, () => createRandomUsers());
  * @returns { Promise<void> }
  */
 exports.seed = async function (knex) {
-	const defaultPassword = `${user.fullName.split(" ")[0].toLowerCase()}123!`;
-
+	
 	console.log("Truncating table");
 	await knex.raw("TRUNCATE TABLE users RESTART IDENTITY CASCADE");
-
+	
 	console.log("Inserting users dummy data");
-
+	
 	await Promise.all(
 		users.map((user) => {
+			const defaultPassword = `${user.full_name.split(" ")[0].toLowerCase()}123!`;
+
 			return userModel.createUser({
-				fullName: user.fullName,
+				full_name: user.full_name,
 				email: user.email,
 				gender: user.gender,
 				phone: user.phone,
