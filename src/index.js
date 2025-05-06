@@ -1,4 +1,5 @@
 const path = require("path");
+const cors = require("cors");
 require("@dotenvx/dotenvx").config({ path: path.join(__dirname, "../.env") });
 
 const express = require("express");
@@ -9,6 +10,7 @@ const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cors())
 
 app.use(routes);
 
@@ -22,7 +24,7 @@ const NODE_ENV = process.env.NODE_ENV || "development";
  * @type { import("express").Response } res
  * @type { import("express").NextFunction } _next
  */
-app.get("/api/v1", (_req, res, _next) => {
+app.get("/", (_req, res, _next) => {
 	const baseUrl =
 		NODE_ENV === "development" ? `http://localhost:${SERVER_PORT}` : `https://${process.env.VERCEL_URL}`;
 
