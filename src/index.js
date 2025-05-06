@@ -26,7 +26,7 @@ const NODE_ENV = process.env.NODE_ENV || "development";
  */
 app.get("/", (_req, res, _next) => {
 	const baseUrl =
-		NODE_ENV === "development" ? `http://localhost:${SERVER_PORT}` : `https://${process.env.VERCEL_URL}`;
+		NODE_ENV === "development" ? `http://localhost:${SERVER_PORT}` : `https://14040-videobelajar-rest`;
 
 	res.send({
 		serverMessage: `Server is up and running. Docs are available at ${baseUrl}/docs/api/v1`,
