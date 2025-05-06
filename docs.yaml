@@ -1,6 +1,10 @@
 openapi: "3.0.0"
 servers:
     - url: http://localhost:8765
+      description: Local server
+    - url: https://14040-videobelajar-rest
+      description: Production server
+
 tags:
     - name: Healthcheck
     - name: User
@@ -58,32 +62,18 @@ paths:
                                             discounted_price: 0,
                                             is_discount: false,
                                             total_students_enrolled: 0,
-                                            categories:
-                                                [
-                                                    Category 1,
-                                                    Category 2,
-                                                    Category 3,
-                                                ],
+                                            categories: [Category 1, Category 2, Category 3],
                                             modules:
                                                 {
                                                     total: 3,
                                                     list:
                                                         [
-                                                            {
-                                                                module_id: 1,
-                                                                title: Module 1,
-                                                            },
-                                                            {
-                                                                module_id: 2,
-                                                                title: Moduele 2,
-                                                            },
-                                                            {
-                                                                module_id: 3,
-                                                                title: Module 3,
-                                                            },
-                                                        ],
-                                                },
-                                        },
+                                                            { module_id: 1, title: Module 1 },
+                                                            { module_id: 2, title: Moduele 2 },
+                                                            { module_id: 3, title: Module 3 }
+                                                        ]
+                                                }
+                                        }
                                     ]
                 500:
                     description: Internal Server Error
@@ -135,32 +125,18 @@ paths:
                                             discounted_price: 0,
                                             is_discount: false,
                                             total_students_enrolled: 0,
-                                            categories:
-                                                [
-                                                    Category 1,
-                                                    Category 2,
-                                                    Category 3,
-                                                ],
+                                            categories: [Category 1, Category 2, Category 3],
                                             modules:
                                                 {
                                                     total: 3,
                                                     list:
                                                         [
-                                                            {
-                                                                module_id: 1,
-                                                                title: Module 1,
-                                                            },
-                                                            {
-                                                                module_id: 2,
-                                                                title: Moduele 2,
-                                                            },
-                                                            {
-                                                                module_id: 3,
-                                                                title: Module 3,
-                                                            },
-                                                        ],
-                                                },
-                                        },
+                                                            { module_id: 1, title: Module 1 },
+                                                            { module_id: 2, title: Moduele 2 },
+                                                            { module_id: 3, title: Module 3 }
+                                                        ]
+                                                }
+                                        }
                                 }
                 400:
                     description: Bad Request
@@ -225,12 +201,7 @@ paths:
                                       discounted_price: 399
                                       is_discount: true
                                       thumbnail_img_url: "https://picsum.photos/id/1/400/200"
-                                      categories:
-                                          [
-                                              "Category 1",
-                                              "Category 2",
-                                              "Category 6",
-                                          ]
+                                      categories: ["Category 1", "Category 2", "Category 6"]
                             defaultModeError:
                                 summary: Causing error in `default` mode (categories were excluded)
                                 value:
@@ -286,8 +257,7 @@ paths:
                                               discounted_price: 399
                                               is_discount: true
                                               thumbnail_img_url: "https://picsum.photos/id/1/400/200"
-                                              categories:
-                                                  ["Category 4", "Category 5"]
+                                              categories: ["Category 4", "Category 5"]
                                 strictMode:
                                     summary: strict mode
                                     value:
@@ -304,13 +274,7 @@ paths:
                                               is_discount: true
                                               thumbnail_img_url: "https://picsum.photos/id/1/400/200"
                                               categories:
-                                                  [
-                                                      "Category 1",
-                                                      "Category 2",
-                                                      "Category 3",
-                                                      "Category 4",
-                                                      "Category 5",
-                                                  ]
+                                                  ["Category 1", "Category 2", "Category 3", "Category 4", "Category 5"]
                 400:
                     description: Bad Request
                     content:
@@ -375,12 +339,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/CodeAndMessage"
-                            example:
-                                {
-                                    code: 200,
-                                    message: Course successfully deleted!,
-                                    data: null,
-                                }
+                            example: { code: 200, message: Course successfully deleted!, data: null }
                 404:
                     description: Not Found
                     content:
@@ -419,14 +378,8 @@ paths:
                             description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur in luctus ligula. Maecenas vulputate bibendum risus, in fringilla dui pretium."
                             price: 599
                             thumbnail_img_url: "https://picsum.photos/id/1/420/230"
-                            categories:
-                                ["Category 1", "Category 2", "Category 3"]
-                            modules:
-                                [
-                                    { title: "Module 1" },
-                                    { title: "Module 2" },
-                                    { title: "Module 3" },
-                                ]
+                            categories: ["Category 1", "Category 2", "Category 3"]
+                            modules: [{ title: "Module 1" }, { title: "Module 2" }, { title: "Module 3" }]
             responses:
                 201:
                     description: Created

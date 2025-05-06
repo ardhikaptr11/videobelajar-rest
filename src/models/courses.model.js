@@ -15,8 +15,6 @@ const createCategory = async (trx, name) => {
 	return categoryId;
 };
 
-// modules:
-// [{"title": "Module 1"}, {"name": "Module 2"}, {"name": "Module 3"}]
 const createCourseModules = (trx, courseId, modules) => {
 	const dataToInsert = modules.map((module) => ({
 		course_id: courseId,
