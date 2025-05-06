@@ -6,7 +6,9 @@ const path = require("path");
 const swaggerDocument = YAML.load(path.join(__dirname, "../../docs.yaml"));
 
 const swaggerDocs = (app) => {
-	app.use("/docs/api/v1", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+	const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css";
+
+	app.use("/docs/api/v1", swaggerUi.serve, swaggerUi.setup(swaggerDocument, { customCssUrl: CSS_URL }));
 };
 
 module.exports = swaggerDocs;
