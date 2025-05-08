@@ -1,18 +1,10 @@
+const createServer = require("./utils/server");
 const path = require("path");
-const cors = require("cors");
 require("@dotenvx/dotenvx").config({ path: path.join(__dirname, "../.env") });
 
-const express = require("express");
-const routes = require("./routes");
 const swaggerDocs = require("./utils/swagger");
 
-const app = express();
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(cors())
-
-app.use(routes);
+const app = createServer();
 
 swaggerDocs(app);
 
