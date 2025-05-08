@@ -75,7 +75,7 @@ const getCourseById = async (courseId) => {
 			"c.discounted_price",
 			"c.is_discount",
 			"c.thumbnail_img_url",
-			knex.raw("count(uc.user_id) as total_students_enrolled"),
+			knex.raw("count(uc.user_id)::int as total_students_enrolled"),
 			knex.raw("array_agg(distinct cat.name) as categories"),
 			knex.raw(
 				`
