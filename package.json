@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "NODE_ENV=development nodemon src/index.js  --watch src/ --watch package.json --watch .env",
+    "dev": "NODE_ENV=development nodemon src/index.js  --watch src/ --watch package.json --watch .env --watch docs.yaml",
     "test": "NODE_ENV=test jest --detectOpenHandles",
     "make:migration": "knex migrate:make --knexfile src/config/database.js",
     "make:seed": "knex seed:make --knexfile src/config/database.js",
