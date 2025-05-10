@@ -53,7 +53,6 @@ const handleCreateNewCourse = async (req, res, _next) => {
 			});
 		}
 
-
 		if (
 			price &&
 			(price < 0 ||
@@ -394,7 +393,7 @@ const handleDeleteCourseData = async (req, res, _next) => {
 		if (!isCourseExist) {
 			return res.status(200).json({
 				code: 200,
-				message: "Course Not Found",
+				message: "Course not found",
 				data: null
 			});
 		}
