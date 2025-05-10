@@ -1,9 +1,8 @@
 const path = require("path");
 
-if (process.env.NODE_ENV !== "production") {
-	const envFile = process.env.NODE_ENV === "development" ? ".env" : `.env.${process.env.NODE_ENV}`;
-	require("@dotenvx/dotenvx").config({ path: path.join(__dirname, "../../", envFile) });
-}
+const envFile = process.env.NODE_ENV === "development" ? ".env" : `.env.${process.env.NODE_ENV}`;
+
+require("@dotenvx/dotenvx").config({ path: path.join(__dirname, "../../", envFile) });
 
 const connection =
 	process.env.NODE_ENV === "development"
