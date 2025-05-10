@@ -10,6 +10,7 @@ const {
 	getCourseByName,
 	getCourseCategories,
 	getCategoryIdByName,
+	getTotalEnrolledStudents,
 	updateCourse,
 	deleteCourse,
 	deleteCategory
@@ -69,7 +70,7 @@ const createNewCourse = async (data) => {
 const updateCourseData = async (courseId, data, mode = "default") => {
 	const categoryNames = data.categories;
 
-	const updatedCourse = await knex.transaction(async (trx) => {
+	const result = await knex.transaction(async (trx) => {
 		const currentCategories = await getCourseCategories(trx, courseId);
 
 		// Array of current category IDs
@@ -89,17 +90,17 @@ const updateCourseData = async (courseId, data, mode = "default") => {
 		const availableMode = ["default", "strict"];
 		if (!availableMode.includes(mode)) return;
 
+		const nullIndexes = categoryNames
+			? categoryMappedIds.map((val, idx) => (val === null ? idx : -1)).filter((val) => val !== -1)
+			: null;
+
 		if (mode === "strict") {
+			if (nullIndexes && nullIndexes.length === 0) return;
+
 			if (!categoryNames) {
 				await updateCourse(trx, courseId, data);
 				return await getCourseById(courseId);
 			}
-
-			const nullIndexes = categoryMappedIds
-				.map((val, idx) => (val === null ? idx : -1))
-				.filter((val) => val !== -1);
-
-			if (nullIndexes.length === 0) return;
 
 			const unknownCategories = nullIndexes.map((idx) => categoryNames[idx]);
 
@@ -109,20 +110,33 @@ const updateCourseData = async (courseId, data, mode = "default") => {
 		} else {
 			if (currentCategoryIds.some((id) => categoryMappedIds.includes(id))) return;
 
-			const newCategoryIds = await Promise.all(categoryNames.map((name) => createCategory(trx, name)));
-
-			categoryMappedIds.splice(0, categoryMappedIds.length, ...newCategoryIds);
-
 			await deleteCategory(trx, courseId, currentCategoryIds);
+
+			if (nullIndexes.length !== 0) {
+				const unknownCategories = nullIndexes.map((idx) => categoryNames[idx]);
+				const newCategoryIds = await Promise.all(unknownCategories.map((name) => createCategory(trx, name)));
+
+				categoryMappedIds.splice(0, categoryMappedIds.length, ...newCategoryIds);
+			}
 		}
 
 		await createCourseCategoryRelation(trx, courseId, categoryMappedIds);
-		await updateCourse(trx, courseId, data);
 
-		return await getCourseById(courseId);
+		delete data.categories;
+
+		const [updatedCourse] = await updateCourse(trx, courseId, data);
+		updatedCourse.total_students_enrolled = await getTotalEnrolledStudents(trx, courseId);
+
+		return updatedCourse;
 	});
 
-	return updatedCourse;
+	const { categories } = await getCourseById(courseId);
+
+	if (result) {
+		result.categories = categories;
+	}
+
+	return result;
 };
 
 module.exports = { createNewCourse, updateCourseData };
