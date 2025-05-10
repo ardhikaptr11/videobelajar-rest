@@ -182,12 +182,6 @@ paths:
                             title: Module 2
                           - module_id: 3
                             title: Module 3
-                noCourseFound:
-                  summary: No course found
-                  value:
-                    code: 200
-                    message: Course not found
-                    data: null
         '400':
           description: Bad Request
           content:
@@ -197,6 +191,16 @@ paths:
               example:
                 code: 400
                 message: Course ID must be a positive integer number
+                data: null
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeAndMessage'
+              example:
+                code: 404
+                message: Course not found
                 data: null
     patch:
       tags:
@@ -366,13 +370,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/GetOneCourseResponse'
               examples:
-                noCourseFound:
-                  summary: No course found
-                  description: Occurs if the id does not exist
-                  value:
-                    code: 200
-                    message: Course not found
-                    data: null
                 successForDefault:
                   summary: Success (default mode)
                   value:
@@ -479,6 +476,16 @@ paths:
                     code: 400
                     message: Discounted price is not applicable
                     data: null
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeAndMessage'
+              example:
+                code: 404
+                message: Course not found
+                data: null
         '409':
           description: Conflict
           content:
@@ -529,12 +536,6 @@ paths:
                     code: 200
                     message: Course successfully deleted!
                     data: null
-                noCourseFound:
-                  summary: No course found
-                  value:
-                    code: 200
-                    message: Course not found
-                    data: null
         '400':
           description: Bad Request
           content:
@@ -544,6 +545,16 @@ paths:
               example:
                 code: 400
                 message: Course ID must be a positive integer number
+                data: null
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeAndMessage'
+              example:
+                code: 404
+                message: Course not found
                 data: null
   /api/v1/course:
     post:
