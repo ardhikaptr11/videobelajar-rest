@@ -1,18 +1,10 @@
+const createServer = require("./utils/server");
 const path = require("path");
-const cors = require("cors");
 require("@dotenvx/dotenvx").config({ path: path.join(__dirname, "../.env") });
 
-const express = require("express");
-const routes = require("./routes");
 const swaggerDocs = require("./utils/swagger");
 
-const app = express();
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(cors())
-
-app.use(routes);
+const app = createServer();
 
 swaggerDocs(app);
 
@@ -26,7 +18,7 @@ const NODE_ENV = process.env.NODE_ENV || "development";
  */
 app.get("/", (_req, res, _next) => {
 	const baseUrl =
-		NODE_ENV === "development" ? `http://localhost:${SERVER_PORT}` : `https://${process.env.VERCEL_URL}`;
+		NODE_ENV === "development" ? `http://localhost:${SERVER_PORT}` : `https://14040-videobelajar-rest.vercel.app`;
 
 	res.send({
 		serverMessage: `Server is up and running. Docs are available at ${baseUrl}/docs/api/v1`,

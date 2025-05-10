@@ -1,8 +1,15 @@
 const path = require("path");
 
-require("@dotenvx/dotenvx").config({ path: path.join(__dirname, "../../.env") });
+const envFile = process.env.NODE_ENV === "development" ? ".env" : `.env.${process.env.NODE_ENV}`;
 
-const connection = process.env.NODE_ENV === "development" ? process.env.POSTGRES_URL_DEV : process.env.POSTGRES_URL;
+require("@dotenvx/dotenvx").config({ path: path.join(__dirname, "../../", envFile) });
+
+const connection =
+	process.env.NODE_ENV === "development"
+		? process.env.POSTGRES_URL_DEV
+		: process.env.NODE_ENV === "test"
+		? process.env.POSTGRES_URL_TEST
+		: process.env.POSTGRES_URL;
 
 const common = {
 	client: "pg",
@@ -25,5 +32,11 @@ module.exports = {
 	},
 	production: {
 		...common
+	},
+	test: {
+		...common,
+		seeds: {
+			directory: path.join(__dirname, "../database/seeds")
+		}
 	}
 };

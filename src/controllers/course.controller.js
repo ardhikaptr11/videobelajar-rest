@@ -15,29 +15,100 @@ const { createNewCourse, updateCourseData } = require("../services/course.servic
  */
 const handleCreateNewCourse = async (req, res, _next) => {
 	try {
-		const { name, tagline, description, price, thumbnail_img_url, categories, modules } = req.body;
+		const {
+			name,
+			tagline,
+			description,
+			price,
+			is_discount,
+			discounted_price,
+			thumbnail_img_url,
+			categories,
+			modules
+		} = req.body;
+
+		const pattern = /^[1-9]\d*$/;
+
+		if (Object.keys(req.body).length === 0) {
+			return res.status(400).json({
+				code: 400,
+				message: "Cannot proceed with empty data",
+				data: null
+			});
+		}
 
 		if (!name || !tagline || !description || !price || !thumbnail_img_url || !categories || !modules) {
+			return res.status(400).json({
+				code: 400,
+				message: "Please make sure all fields are filled in",
+				data: null
+			});
+		}
+
+		if (is_discount && !discounted_price) {
+			return res.status(400).json({
+				code: 400,
+				message: "Please specify the discounted price",
+				data: null
+			});
+		}
+
+		if (
+			price &&
+			(price < 0 ||
+				price % 1 !== 0 ||
+				!pattern.test(price) ||
+				(is_discount &&
+					(discounted_price < 0 || discounted_price % 1 !== 0 || !pattern.test(discounted_price))))
+		) {
+			return res.status(400).json({
+				code: 400,
+				message: "Invalid price value",
+				data: null
+			});
+		}
+
+		if (!is_discount && discounted_price && discounted_price > 0) {
+			return res.status(400).json({
+				code: 400,
+				message: "Discounted price is not applicable",
+				data: null
+			});
+		}
+
+		if (is_discount && discounted_price >= price) {
 			return res.status(422).json({
 				code: 422,
-				message: "Please make sure all fields are filled in",
+				message: "Discounted price cannot be equal or exceed the original price",
 				data: null
 			});
 		}
 
 		const isNameTaken = await getCourseByName(name);
 		if (!isNameTaken) {
-			const course = await createNewCourse({
-				name,
-				tagline,
-				description,
-				price,
-				thumbnail_img_url,
-				categories,
-				modules
-			});
+			const course = await (is_discount
+				? createNewCourse({
+						name,
+						tagline,
+						description,
+						price,
+						is_discount,
+						discounted_price,
+						thumbnail_img_url,
+						categories,
+						modules
+				  })
+				: createNewCourse({
+						name,
+						tagline,
+						description,
+						price,
+						thumbnail_img_url,
+						categories,
+						modules
+				  }));
 
-			res.status(201).json({
+			return res.status(201).json({
 				code: 201,
 				message: "Course created successfully!",
 				data: course
@@ -46,7 +117,7 @@ const handleCreateNewCourse = async (req, res, _next) => {
 
 		return res.status(409).json({
 			code: 409,
-			message: "Course name already taken.",
+			message: "Course name already taken",
 			data: null
 		});
 	} catch (error) {
@@ -67,6 +138,15 @@ const handleCreateNewCourse = async (req, res, _next) => {
 const handleGetAllCourses = async (_req, res, _next) => {
 	try {
 		const courses = await getAllCourses();
+
+		if (courses.length === 0) {
+			return res.status(200).json({
+				code: 200,
+				message: "No data recorded yet",
+				data: null
+			});
+		}
+
 		res.status(200).json({
 			code: 200,
 			message: "Courses successfully retrieved!",
@@ -98,19 +178,24 @@ const handleGetAllCourses = async (_req, res, _next) => {
  */
 const handleGetOneCourse = async (req, res, _next) => {
 	try {
-		const { id } = req.params;
-		if (!id) {
-			return res.status(422).json({
-				code: 422,
-				message: "Missing parameter",
+		const id = +req.params.id; // Convert to number, non-numeric input will become NaN
+
+		// Regular expression to check if the string is a positive integer number,
+		// negative integer numbers or 0 will not pass
+		const pattern = /^[1-9]\d*$/;
+
+		if (!pattern.test(id)) {
+			return res.status(400).json({
+				code: 400,
+				message: "Course ID must be a positive integer number",
 				data: null
 			});
 		}
 
 		const course = await getCourseById(id);
 		if (!course) {
-			return res.status(404).json({
-				code: 404,
+			return res.status(200).json({
+				code: 200,
 				message: "Course not found",
 				data: null
 			});
@@ -147,14 +232,74 @@ const handleGetOneCourse = async (req, res, _next) => {
  */
 const handleUpdateCourseData = async (req, res, _next) => {
 	try {
-		const { id } = req.params;
-		const payload = req.body;
+		const id = +req.params.id;
 		const query = req.query;
+		const payload = req.body;
+
+		const pattern = /^[1-9]\d*$/;
 
 		if (Object.keys(payload).length === 0) {
 			return res.status(400).json({
 				code: 400,
 				message: "Cannot proceed with empty data",
+				data: null
+			});
+		}
+
+		if (!pattern.test(id)) {
+			return res.status(400).json({
+				code: 400,
+				message: "Course ID must be a positive integer number",
+				data: null
+			});
+		}
+
+		const isCourseExist = await getCourseById(id);
+		if (!isCourseExist) {
+			return res.status(200).json({
+				code: 200,
+				message: "Course not found",
+				data: null
+			});
+		}
+
+		if (
+			payload.price &&
+			(payload.price < 0 ||
+				payload.price % 1 !== 0 ||
+				!pattern.test(payload.price) ||
+				(payload.is_discount &&
+					(payload.discounted_price < 0 ||
+						payload.discounted_price % 1 !== 0 ||
+						!pattern.test(payload.discounted_price))))
+		) {
+			return res.status(400).json({
+				code: 400,
+				message: "Invalid price value",
+				data: null
+			});
+		}
+
+		if (payload.is_discount && !payload.discounted_price) {
+			return res.status(400).json({
+				code: 400,
+				message: "Please specify the discounted price",
+				data: null
+			});
+		}
+
+		if (!payload.is_discount && payload.discounted_price && payload.discounted_price > 0) {
+			return res.status(400).json({
+				code: 400,
+				message: "Discounted price is not applicable",
+				data: null
+			});
+		}
+
+		if (payload.is_discount && payload.discounted_price >= payload.price) {
+			return res.status(422).json({
+				code: 422,
+				message: "Discounted price cannot be equal or exceed the original price",
 				data: null
 			});
 		}
@@ -173,8 +318,7 @@ const handleUpdateCourseData = async (req, res, _next) => {
 			if (!updatedCourseData) {
 				return res.status(409).json({
 					code: 409,
-					message:
-						"Cannot override predefined categories with the exact same name",
+					message: "Cannot override predefined categories with the exact same name",
 					data: null
 				});
 			}
@@ -190,7 +334,7 @@ const handleUpdateCourseData = async (req, res, _next) => {
 			if (payload.categories && payload.categories.length === 0) {
 				return res.status(400).json({
 					code: 400,
-					message: "Failed to append. No categories provided",
+					message: "Failed to append. No category provided",
 					data: null
 				});
 			}
@@ -233,14 +377,23 @@ const handleUpdateCourseData = async (req, res, _next) => {
  * @param { import("express").NextFunction } _next
  */
 const handleDeleteCourseData = async (req, res, _next) => {
-	const { id } = req.params;
-
 	try {
-		const isCourseExist = await getCourseById(id);
-		if (!isCourseExist) {
+		const id = +req.params.id;
+		const pattern = /^[1-9]\d*$/;
+
+		if (!pattern.test(id)) {
 			return res.status(400).json({
 				code: 400,
-				message: "Course Not Found",
+				message: "Course ID must be a positive integer number",
+				data: null
+			});
+		}
+
+		const isCourseExist = await getCourseById(id);
+		if (!isCourseExist) {
+			return res.status(200).json({
+				code: 200,
+				message: "Course not found",
 				data: null
 			});
 		}

@@ -75,7 +75,7 @@ const getCourseById = async (courseId) => {
 			"c.discounted_price",
 			"c.is_discount",
 			"c.thumbnail_img_url",
-			knex.raw("count(uc.user_id) as total_students_enrolled"),
+			knex.raw("count(uc.user_id)::int as total_students_enrolled"),
 			knex.raw("array_agg(distinct cat.name) as categories"),
 			knex.raw(
 				`
@@ -111,13 +111,34 @@ const getCategoryIdByName = async (trx, name) => {
 
 	if (!category) return null;
 
-	const categoryId = category.category_id;
+	return category.category_id;
+};
 
-	return categoryId;
+const getTotalEnrolledStudents = async (trx, courseId) => {
+	const { total_students_enrolled } = await trx("user_course")
+		.count("user_id", { as: "total_students_enrolled" })
+		.where({ course_id: courseId })
+		.first();
+
+	return parseInt(total_students_enrolled, 10);
 };
 
 const updateCourse = async (trx, courseId, data) => {
-	return trx(TABLE_NAME).update(data).where("course_id", courseId);
+	return trx(TABLE_NAME)
+		.update(data)
+		.where("course_id", courseId)
+		.returning([
+			"course_id",
+			"name",
+			"tagline",
+			"description",
+			"slug",
+			"price",
+			"is_discount",
+			"discounted_price",
+			"thumbnail_img_url",
+			"updated_at"
+		]);
 };
 
 const deleteCourse = async (courseId) => {
@@ -127,7 +148,6 @@ const deleteCourse = async (courseId) => {
 const deleteCategory = (trx, courseId, categoryIds) => {
 	return trx("course_categories").where({ course_id: courseId }).whereIn("category_id", categoryIds).del();
 };
-
 
 module.exports = {
 	createCourse,
@@ -139,6 +159,7 @@ module.exports = {
 	getCourseByName,
 	getCourseCategories,
 	getCategoryIdByName,
+	getTotalEnrolledStudents,
 	updateCourse,
 	deleteCourse,
 	deleteCategory,
