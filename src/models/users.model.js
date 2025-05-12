@@ -4,27 +4,18 @@ const bcrypt = require("bcryptjs");
 const TABLE_NAME = "users";
 
 const createUser = async (data) => {
-	try {
-		const { full_name, email, gender, phone, password } = data;
+	const { full_name, email, gender, phone, password } = data;
 
-		const salt = await bcrypt.genSalt(10);
-		const hashedPassword = await bcrypt.hash(password, salt);
+	const salt = await bcrypt.genSalt(10);
+	const hashedPassword = await bcrypt.hash(password, salt);
 
-		return knex(TABLE_NAME).insert({
-			full_name,
-			email,
-			gender,
-			phone,
-			password: hashedPassword
-		});
-	} catch (error) {
-		console.error(error);
-		return {
-			code: 500,
-			message: "Internal Server Error",
-			data: null
-		};
-	}
+	return knex(TABLE_NAME).insert({
+		full_name,
+		email,
+		gender,
+		phone,
+		password: hashedPassword
+	})
 };
 
 const getAllUsers = async () => {
