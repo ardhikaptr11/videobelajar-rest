@@ -81,19 +81,19 @@ const handleRegister = async (req, res, _next) => {
 		}
 
 		const transporter = createTransport();
-
 		const messageToSend = generateMessage(email);
-		const info = await transporter.sendMail(messageToSend);
-
-		console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-
-		// await createUser({
-		// 	full_name,
-		// 	email,
-		// 	gender,
-		// 	phone,
-		// 	password
-		// });
+		
+		await createUser({
+			full_name,
+			email,
+			gender,
+			phone,
+			password
+		});
+		
+		await transporter.sendMail(messageToSend);
+		
+		// console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
 
 		return res.status(201).json({
 			code: 201,
