@@ -1,6 +1,10 @@
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const bcrypt = require("bcryptjs");
+const nodemailer = require("nodemailer");
+const { v7: uuidv7 } = require("uuid");
+
+const createTransport = require("../services/email.service");
 
 const envFile = process.env.NODE_ENV === "development" ? ".env" : `.env.${process.env.NODE_ENV}`;
 
@@ -19,6 +23,27 @@ const generateToken = (user) => {
 
 	const token = jwt.sign(user, JWT_SECRET, config);
 	return token;
+};
+
+const generateMessage = (email) => {
+	const token = uuidv7();
+
+	const message =
+		process.env.NODE_ENV === "development"
+			? {
+					from: "Example app <no-reply@example.com>",
+					to: `${email}`,
+					subject: "Hello from tests ✔",
+					text: `Your email verification token: ${token}`
+			  }
+			: {
+					from: "Videbelajar <videobelajar@yopmail.com>",
+					to: `${email}`,
+					subject: "Email Verification",
+					text: `Your email verification token: ${token}`
+			  };
+
+	return message;
 };
 
 /**
@@ -55,17 +80,24 @@ const handleRegister = async (req, res, _next) => {
 			});
 		}
 
-		await createUser({
-			full_name,
-			email,
-			gender,
-			phone,
-			password
-		});
+		const transporter = createTransport();
+
+		const messageToSend = generateMessage(email);
+		const info = await transporter.sendMail(messageToSend);
+
+		console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+
+		// await createUser({
+		// 	full_name,
+		// 	email,
+		// 	gender,
+		// 	phone,
+		// 	password
+		// });
 
 		return res.status(201).json({
 			code: 201,
-			message: "Successfully Created New User!",
+			message: "Successfully Created New User!"
 		});
 	} catch (error) {
 		console.error(error);
