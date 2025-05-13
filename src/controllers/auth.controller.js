@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
-const { v7: uuidv7 } = require("uuid");
+const { v4: uuidv4 } = require("uuid");
 
 const createTransport = require("../services/email.service");
 
@@ -34,7 +34,8 @@ const generateToken = (user) => {
 };
 
 const generateMessage = (email) => {
-	const token = uuidv7();
+	const uuid = uuidv4();
+	const token = uuid.split("-").slice(1, 3).join("")
 
 	const message =
 		process.env.NODE_ENV === "development"
@@ -53,6 +54,8 @@ const generateMessage = (email) => {
 
 	return message;
 };
+
+console.log(generateMessage("jane.doe@example.com"))
 
 /**
  * @param { import("express").Request } req
