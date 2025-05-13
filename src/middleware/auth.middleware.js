@@ -16,8 +16,7 @@ require("@dotenvx/dotenvx").config({
  */
 const verifyToken = async (req, res, next) => {
 	try {
-		const authHeader = req.get("Authorization"); // Bearer ...
-		// console.log(authHeader);
+		const authHeader = req.get("Authorization");
 
 		if (!authHeader)
 			return res.status(401).json({ code: 401, message: "Authentication failed, no token provided" });
