@@ -15,21 +15,21 @@ const { createUser } = require("../models/users.model");
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 const generateToken = (user) => {
+	const payload = { ...user, role: `${user.email === "admin@videobelajar.com" ? "admin" : "user"}` };
+
 	const config =
 		user.email === "admin@videobelajar.com"
 			? {
 					issuer: "videobelajar-api",
-					role: "admin",
 					subject: user.email
 			  }
 			: {
 					expiresIn: 5 * 60 * 60,
 					issuer: "videobelajar-api",
-					role: "user",
 					subject: user.email
 			  };
 
-	const token = jwt.sign(user, JWT_SECRET, config);
+	const token = jwt.sign(payload, JWT_SECRET, config);
 	return token;
 };
 
