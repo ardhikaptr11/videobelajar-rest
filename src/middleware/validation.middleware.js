@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 
-const { getUserByEmail } = require("../models/users.model");
+const { getUserByEmail, getUserByVerifToken } = require("../models/users.model");
 
 const emailPattern = /^[a-zA-Z][a-zA-Z0-9-_.]*@(?:gmail\.com|(?!gmail\.)[a-z]+\.(?:com|co\.[a-z]{2,3}))$/;
 
@@ -73,12 +73,41 @@ const validateLogin = async (req, res, next) => {
 	if (!isEmailAllowed) return res.status(200).json({ code: 200, message: "Invalid email", data: null });
 
 	const user = await getUserByEmail(email);
+
 	if (!user) return res.status(200).json({ code: 200, message: "User not found", data: null });
 
 	const isPasswordMatch = await bcrypt.compare(password, user.password);
 	if (!isPasswordMatch) return res.status(200).json({ code: 200, message: "Invalid password", data: null });
 
+	if (!user.is_verified)
+		return res
+			.status(200)
+			.json({ code: 200, message: "Cannot login, please verify your account first", data: null });
+
 	next();
 };
 
-module.exports = { validateLogin, validateRegister };
+/**
+ *
+ * @param { import("express").Request } req
+ * @param { import("express").Response } res
+ * @param { import("express").NextFunction } next
+ */
+const validateVerification = async (req, res, next) => {
+	const verificationToken = req.query.token;
+
+	if (!verificationToken)
+		return res.status(400).json({ code: 400, message: "Verification token is required", data: null });
+
+	const user = await getUserByVerifToken(verificationToken);
+
+	if (!user) return res.status(200).json({ code: 200, message: "Token not recognized", data: null })
+
+	if (user.is_verified) return res.status(400).json({ code: 400, message: "User already verified", data: null });
+	
+	req.params.id = user.user_id
+
+	next();
+};
+
+module.exports = { validateLogin, validateRegister, validateVerification };
