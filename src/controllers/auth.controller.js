@@ -10,9 +10,12 @@ const envFile = process.env.NODE_ENV === "development" ? ".env" : `.env.${proces
 
 require("@dotenvx/dotenvx").config({ path: path.join(__dirname, "../..", envFile) });
 
-const { createUser } = require("../models/users.model");
+const { createUser, updateUser } = require("../models/users.model");
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+
+const uuid = uuidv4();
+const token = uuid.split("-").slice(1, 3).join("");
 
 const generateToken = (user) => {
 	const payload = { ...user, role: `${user.email === "admin@videobelajar.com" ? "admin" : "user"}` };
@@ -34,16 +37,13 @@ const generateToken = (user) => {
 };
 
 const generateMessage = (email) => {
-	const uuid = uuidv4();
-	const token = uuid.split("-").slice(1, 3).join("")
-
 	const message =
 		process.env.NODE_ENV === "development"
 			? {
-					from: "Example app <no-reply@example.com>",
+					from: "Videobelajar app <no-reply@videobelajar.com>",
 					to: `${email}`,
 					subject: "Hello from tests ✔",
-					text: `Your email verification token: ${token}`
+					html: `<p>Follow this <a href="http://localhost:8765/api/v2/verify-email?token=${token}">link</a> to complete verification</p>`
 			  }
 			: {
 					from: "Videbelajar <videobelajar@yopmail.com>",
@@ -54,8 +54,6 @@ const generateMessage = (email) => {
 
 	return message;
 };
-
-console.log(generateMessage("jane.doe@example.com"))
 
 /**
  * @param { import("express").Request } req
@@ -74,7 +72,8 @@ const handleRegister = async (req, res, _next) => {
 			email,
 			gender,
 			phone,
-			password
+			password,
+			verif_token: token
 		});
 
 		await transporter.sendMail(messageToSend);
@@ -119,4 +118,29 @@ const handleLogin = async (req, res, _next) => {
 	}
 };
 
-module.exports = { handleRegister, handleLogin };
+/**
+ * @param { import("express").Request } req
+ * @param { import("express").Response } res
+ * @param { import("express").NextFunction } _next
+ */
+const handleEmailVerification = async (req, res, _next) => {
+	try {
+		const { id } = req.params;
+		const data = await updateUser(id, { is_verified: true });
+
+		return res.status(200).json({
+			code: 200,
+			message: "Verification success!",
+			data
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			code: 500,
+			message: "Failed to verify user",
+			data: null
+		});
+	}
+};
+
+module.exports = { handleRegister, handleLogin, handleEmailVerification };
