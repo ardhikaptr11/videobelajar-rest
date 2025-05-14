@@ -1,7 +1,7 @@
 const express = require("express");
 
-const { validateLogin, validateRegister } = require("../middleware/validation.middleware");
-const { handleRegister, handleLogin } = require("../controllers/auth.controller");
+const { validateLogin, validateRegister, validateVerification } = require("../middleware/validation.middleware");
+const { handleRegister, handleLogin, handleEmailVerification } = require("../controllers/auth.controller");
 
 const router = express.Router();
 
@@ -9,5 +9,7 @@ const router = express.Router();
 router.post("/register", validateRegister, handleRegister);
 // Login existing user
 router.post("/login", validateLogin, handleLogin);
+// Verify user
+router.get("/verify-email", validateVerification, handleEmailVerification);
 
 module.exports = router;
