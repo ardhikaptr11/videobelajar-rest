@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 const TABLE_NAME = "users";
 
 const createUser = async (data) => {
-	const { full_name, email, gender, phone, password } = data;
+	const { full_name, email, gender, phone, password, verif_token } = data;
 
 	const salt = await bcrypt.genSalt(10);
 	const hashedPassword = await bcrypt.hash(password, salt);
@@ -14,8 +14,9 @@ const createUser = async (data) => {
 		email,
 		gender,
 		phone,
-		password: hashedPassword
-	})
+		password: hashedPassword,
+		verif_token
+	});
 };
 
 const getAllUsers = async () => {
@@ -30,11 +31,15 @@ const getUserByEmail = async (email) => {
 	return knex(TABLE_NAME).where({ email }).first();
 };
 
+const getUserByVerifToken = async (token) => {
+	return knex(TABLE_NAME).where({ verif_token: token }).first();
+};
+
 const updateUser = async (userId, data) => {
 	const [result] = await knex(TABLE_NAME)
 		.update(data)
 		.where("user_id", userId)
-		.returning(["user_id", "full_name", "email", "phone"]);
+		.returning(["user_id", "full_name", "email", "phone", "is_verified"]);
 
 	return result;
 };
@@ -48,6 +53,7 @@ module.exports = {
 	getAllUsers,
 	getUserById,
 	getUserByEmail,
+	getUserByVerifToken,
 	updateUser,
 	deleteUser,
 	tableName: TABLE_NAME
