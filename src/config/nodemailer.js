@@ -17,8 +17,6 @@ try {
 	};
 
 	transporter = nodemailer.createTransport(config);
-	
-	console.log(transporter)
 } catch (error) {
 	console.error("Email transporter failed to create:", error);
 

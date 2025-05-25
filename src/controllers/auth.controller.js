@@ -53,7 +53,7 @@ const handleRegister = async (req, res, next) => {
 			full_name,
 			email,
 			gender,
-			phone,
+			phone: `0${phone}`,
 			password,
 			verif_token,
 			avatar_url: defaultAvatarUrl
@@ -111,7 +111,16 @@ const handleEmailVerification = async (req, res, next) => {
 
 		const result = await updateUserDataByRole("user", targetId, { is_verified: true });
 
-		return res.status(200).json({ code: 200, message: "Verification success!", result });
+		return res.status(200).json({
+			code: 200,
+			message: "Verification success!",
+			data: {
+				user_id: result.user_id,
+				email: result.email,
+				is_verified: result.is_verified,
+				verified_at: Date.now()
+			}
+		});
 	} catch (error) {
 		error.message = "Failed to verify user";
 		next(error);
