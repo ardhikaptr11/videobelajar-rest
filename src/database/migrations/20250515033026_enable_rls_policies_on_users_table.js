@@ -15,10 +15,20 @@ exports.up = (knex) => {
 		CREATE POLICY "User can see their own data" ON users
 		FOR SELECT
 		USING (
-			current_setting('app.role', true) = 'admin'
-			OR current_setting('app.current_user_id', true) = user_id::text
+			COALESCE (
+				current_setting('request.jwt.claims.role', true),
+				current_setting('app.role', true)
+			) = 'admin'
+			OR 
+			COALESCE (
+				current_setting('request.jwt.claims.userId', true),
+				current_setting('app.current_user_id', true)
+			) = user_id::text
 			OR (
-				current_setting('app.role', true) = 'anonymous'
+				COALESCE (
+					current_setting('request.jwt.claims.role', true),
+					current_setting('app.role', true)
+				) IN ('anon', 'anonymous')
 				AND NOT is_verified
 			)
 		);
@@ -34,16 +44,30 @@ exports.up = (knex) => {
 		CREATE POLICY "Users can update their own data" ON users
 		FOR UPDATE
 		USING (
-			current_setting('app.role', true) = 'admin'
-			OR current_setting('app.current_user_id', true) = user_id::text
+			COALESCE (
+				current_setting('request.jwt.claims.role', true),
+				current_setting('app.role', true)
+			) = 'admin'
+			OR
+			COALESCE (
+				current_setting('request.jwt.claims.userId', true),
+				current_setting('app.current_user_id', true)
+			) = user_id::text
 		);
 
 		-- Policy: Allow users to delete their own data or if they are admin
 		CREATE POLICY "Users can delete their own data" ON users
 		FOR DELETE
 		USING (
-			current_setting('app.role', true) = 'admin'
-			OR current_setting('app.current_user_id', true) = user_id::text
+			COALESCE (
+				current_setting('request.jwt.claims.role', true),
+				current_setting('app.role', true)
+			) = 'admin'
+			OR
+			COALESCE (
+				current_setting('request.jwt.claims.userId', true),
+				current_setting('app.current_user_id', true)
+			) = user_id::text
 		);
 	`);
 };
