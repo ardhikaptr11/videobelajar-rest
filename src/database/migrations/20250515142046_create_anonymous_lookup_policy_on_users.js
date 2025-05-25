@@ -11,10 +11,20 @@ exports.up = (knex) => {
             ON users
             FOR SELECT
             USING (
-                current_setting('app.role', true) = 'anonymous'
+                COALESCE (
+                    current_setting('request.jwt.claims.role', true),
+                    current_setting('app.role', true)
+                ) IN ('anon', 'anonymous')
                 AND (
-                    current_setting('app.email', true) = email
-                    OR current_setting('app.verif_token', true) = verif_token
+                    COALESCE (
+                        current_setting('request.jwt.claims.email', true),
+                        current_setting('app.email', true)
+                    ) = email
+                    OR
+                    COALESCE (
+                        current_setting('request.jwt.claims.verif_token', true),
+                        current_setting('app.verif_token', true)
+                    ) = verif_token
                 )
             );
         `
