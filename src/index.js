@@ -21,8 +21,10 @@ app.get("/", (_req, res, _next) => {
 	const baseUrl =
 		NODE_ENV === "development" ? `http://localhost:${SERVER_PORT}` : `https://14040-videobelajar-rest.vercel.app`;
 
+	const version = require("../package.json").version.split(".")[0];
+
 	res.send({
-		serverMessage: `Server is up and running. Docs are available at ${baseUrl}/docs/api/v1`,
+		serverMessage: `Server is up and running. Docs are available at ${baseUrl}/docs/api/v${version}`,
 		serverTime: new Date().toLocaleString()
 	});
 });
