@@ -49,13 +49,19 @@ exports.seed = async (knex) => {
 		users.map((user) => {
 			const defaultPassword = `${user.full_name.split(" ")[0].toLowerCase()}123!`;
 
+			const name = user.gender === "male" ? "Oliver" : "Eliza";
+			const queries = `seed=${name}&radius=20&size=250&backgroundColor=b6e3f4&clothing=collarAndSweater&eyes=closed,default,eyeRoll,happy,hearts,side,squint,surprised,wink,winkWacky,xDizzy`;
+
+			const defaultAvatarUrl = `https://api.dicebear.com/9.x/avataaars/png/${queries}`;
+
 			return createUser({
 				full_name: user.full_name,
 				email: user.email,
 				gender: user.gender,
 				phone: user.phone,
 				password: defaultPassword,
-				verif_token: generateVerifToken()
+				verif_token: generateVerifToken(),
+				avatar_url: defaultAvatarUrl
 			});
 		})
 	);
