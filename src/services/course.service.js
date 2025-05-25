@@ -15,6 +15,7 @@ const {
 	deleteCourse,
 	deleteCategory
 } = require("../models/courses.model");
+
 const knex = require("../models/knex");
 
 const createNewCourse = async (data) => {
@@ -24,6 +25,9 @@ const createNewCourse = async (data) => {
 	const slug = faker.helpers.slugify(name.replace(/\/| - |-/g, " ").toLowerCase());
 
 	const newCourse = await knex.transaction(async (trx) => {
+		// Only admin can create a new course
+		await trx.raw(`SET LOCAL app.role = 'admin'`)
+
 		// Maps categories to their respective IDs in an array, missing category is marked with null
 		const categoryMappedIds = await Promise.all(categoryNames.map((name) => getCategoryIdByName(trx, name)));
 
@@ -71,6 +75,9 @@ const updateCourseData = async (courseId, data, mode = "default") => {
 	const categoryNames = data.categories;
 
 	const result = await knex.transaction(async (trx) => {
+		// Only admin can update course data
+		await trx.raw(`SET LOCAL app.role = 'admin'`);
+
 		const currentCategories = await getCourseCategories(trx, courseId);
 
 		// Array of current category IDs
@@ -139,4 +146,11 @@ const updateCourseData = async (courseId, data, mode = "default") => {
 	return result;
 };
 
-module.exports = { createNewCourse, updateCourseData };
+const accessCoursesDataByRole = (filters = {}, role) => {
+	return knex.transaction(async (trx) => {
+		await trx.raw(`SET LOCAL app.role = '${role}'`);
+		return getAllCourses(trx, filters);
+	});
+};
+
+module.exports = { createNewCourse, updateCourseData, accessCoursesDataByRole };
