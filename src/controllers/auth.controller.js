@@ -1,107 +1,94 @@
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const bcrypt = require("bcryptjs");
-const nodemailer = require("nodemailer");
+
 const { v4: uuidv4 } = require("uuid");
 
-const createTransport = require("../services/email.service");
+const { createUser, updateUser, getUserByEmail } = require("../models/users.model");
+const { updateUserDataByRole } = require("../services/user.service");
+
+const verifyEmailConfig = require("../utils/mail");
+const { sendVerificationEmail } = require("../services/email.service");
 
 const envFile = process.env.NODE_ENV === "development" ? ".env" : `.env.${process.env.NODE_ENV}`;
-
 require("@dotenvx/dotenvx").config({ path: path.join(__dirname, "../..", envFile) });
 
-const { createUser, updateUser } = require("../models/users.model");
+const generateToken = async (field) => {
+	const JWT_SECRET = process.env.JWT_SECRET;
 
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+	const user = field.email !== process.env.ADMIN_EMAIL ? await getUserByEmail(field.email) : null;
+	const userId = user ? user.user_id : null;
 
-const uuid = uuidv4();
-const token = uuid.split("-").slice(1, 3).join("");
-
-const generateToken = (user) => {
-	const payload = { ...user, role: `${user.email === "admin@videobelajar.com" ? "admin" : "user"}` };
+	const payload = user ? { userId, role: "user" } : { ...field, role: "admin" };
 
 	const config =
-		user.email === "admin@videobelajar.com"
-			? {
-					issuer: "videobelajar-api",
-					subject: user.email
-			  }
-			: {
-					expiresIn: 5 * 60 * 60,
-					issuer: "videobelajar-api",
-					subject: user.email
-			  };
+		field.email !== process.env.ADMIN_EMAIL
+			? process.env.NODE_ENV !== "test"
+				? { expiresIn: 5 * 60, issuer: "videobelajar-api", subject: userId }
+				: { issuer: "videobelajar-api", subject: userId }
+			: { issuer: "videobelajar-api", subject: field.email };
 
 	const token = jwt.sign(payload, JWT_SECRET, config);
+
 	return token;
-};
-
-const generateMessage = (email) => {
-	const message =
-		process.env.NODE_ENV === "development"
-			? {
-					from: "Videobelajar app <no-reply@videobelajar.com>",
-					to: `${email}`,
-					subject: "Hello from tests ✔",
-					html: `<p>Follow this <a href="http://localhost:8765/api/v2/verify-email?token=${token}">link</a> to complete verification</p>`
-			  }
-			: {
-					from: "Videbelajar <videobelajar@yopmail.com>",
-					to: `${email}`,
-					subject: "Email Verification",
-					text: `Your email verification token: ${token}`
-			  };
-
-	return message;
 };
 
 /**
  * @param { import("express").Request } req
  * @param { import("express").Response } res
- * @param { import("express").NextFunction } _next
+ * @param { import("express").NextFunction } next
  */
-const handleRegister = async (req, res, _next) => {
+const handleRegister = async (req, res, next) => {
 	try {
 		const { full_name, email, gender, phone, password } = req.body;
 
-		const transporter = createTransport();
-		const messageToSend = generateMessage(email);
+		const name = gender === "male" ? "Oliver" : "Eliza";
+		const queries = `seed=${name}&radius=20&size=250&backgroundColor=b6e3f4&clothing=collarAndSweater&eyes=closed,default,eyeRoll,happy,hearts,side,squint,surprised,wink,winkWacky,xDizzy`;
 
-		await createUser({
+		const defaultAvatarUrl = `https://api.dicebear.com/9.x/avataaars/png/${queries}`;
+
+		const verif_token = uuidv4().split("-").slice(1, 3).join("");
+
+		const user = await createUser({
 			full_name,
 			email,
 			gender,
 			phone,
 			password,
-			verif_token: token
+			verif_token,
+			avatar_url: defaultAvatarUrl
 		});
 
-		await transporter.sendMail(messageToSend);
+		if (process.env.NODE_ENV !== "test") {
+			try {
+				console.log("Checking email configuration...");
+				await verifyEmailConfig();
+				await sendVerificationEmail(user, verif_token);
+			} catch (error) {
+				console.error("❌ Error sending email:", error.message);
+			}
+		}
 
 		return res.status(201).json({
 			code: 201,
-			message: "Successfully Created New User!"
+			message: "New user successfully created!",
+			data: user
 		});
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({
-			code: 500,
-			message: "Failed to register user",
-			data: null
-		});
+		next(error);
 	}
 };
 
 /**
  * @param { import("express").Request } req
  * @param { import("express").Response } res
- * @param { import("express").NextFunction } _next
+ * @param { import("express").NextFunction } next
  */
-const handleLogin = async (req, res, _next) => {
+const handleLogin = async (req, res, next) => {
 	try {
 		const { email } = req.body;
 
-		const token = generateToken({ email });
+		const token = await generateToken({ email });
 
 		return res.status(200).json({
 			code: 200,
@@ -109,37 +96,25 @@ const handleLogin = async (req, res, _next) => {
 			data: { token, lastLogin: new Date().toISOString() }
 		});
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({
-			code: 500,
-			message: "Failed to login user",
-			data: null
-		});
+		next(error);
 	}
 };
 
 /**
  * @param { import("express").Request } req
  * @param { import("express").Response } res
- * @param { import("express").NextFunction } _next
+ * @param { import("express").NextFunction } next
  */
-const handleEmailVerification = async (req, res, _next) => {
+const handleEmailVerification = async (req, res, next) => {
 	try {
-		const { id } = req.params;
-		const data = await updateUser(id, { is_verified: true });
+		const { id: targetId } = req.params;
 
-		return res.status(200).json({
-			code: 200,
-			message: "Verification success!",
-			data
-		});
+		const result = await updateUserDataByRole("user", targetId, { is_verified: true });
+
+		return res.status(200).json({ code: 200, message: "Verification success!", result });
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({
-			code: 500,
-			message: "Failed to verify user",
-			data: null
-		});
+		error.message = "Failed to verify user";
+		next(error);
 	}
 };
 
