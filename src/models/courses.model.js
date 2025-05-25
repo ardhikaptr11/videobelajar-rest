@@ -29,8 +29,10 @@ const createCourseCategoryRelation = (trx, courseId, categories) => {
 	return trx("course_categories").insert(dataToInsert);
 };
 
-const getAllCourses = async () => {
-	return knex({ c: TABLE_NAME })
+const getAllCourses = async (trx, filters) => {
+	const { search, topic, sortBy, order } = filters;
+
+	const query = trx({ c: TABLE_NAME })
 		.select(
 			"c.course_id",
 			"c.name",
@@ -41,27 +43,53 @@ const getAllCourses = async () => {
 			"c.discounted_price",
 			"c.is_discount",
 			"c.thumbnail_img_url",
-			knex.raw("count(uc.user_id)::int as total_students_enrolled"),
-			knex.raw("array_agg(distinct cat.name) as categories"),
-			knex.raw(
+			trx.raw("count(uc.user_id)::int as total_students_enrolled"),
+			trx.raw("array_agg(distinct cat.name) as categories"),
+			trx.raw(
 				`
-					(
-						SELECT jsonb_agg(modules_row ORDER BY (modules_row->>'module_id')::int)
-						FROM (
-							SELECT DISTINCT jsonb_build_object('module_id', m.module_id, 'title', m.title) as modules_row
-							FROM modules m
-							WHERE m.course_id = c.course_id
-						) as sub
-					) as modules
-				`
+				(
+					SELECT jsonb_agg(modules_row ORDER BY (modules_row->>'module_id')::int)
+					FROM (
+						SELECT DISTINCT jsonb_build_object('module_id', m.module_id, 'title', m.title) as modules_row
+						FROM modules m
+						WHERE m.course_id = c.course_id
+					) as sub
+				) as modules
+			`
 			)
 		)
 		.leftJoin({ uc: "user_course" }, "c.course_id", "uc.course_id")
 		.leftJoin({ cc: "course_categories" }, "c.course_id", "cc.course_id")
 		.leftJoin({ cat: "categories" }, "cc.category_id", "cat.category_id")
-		.groupBy("c.course_id")
-		.orderBy("c.course_id", "asc");
+		.groupBy("c.course_id");
+
+	if (search) {
+		query.whereILike("c.name", `%${search}%`);
+	}
+
+	if (topic) {
+		query.whereIn("c.course_id", function () {
+			this.select("cc.course_id")
+				.from("course_categories as cc")
+				.leftJoin("categories as cat", "cc.category_id", "cat.category_id")
+				.whereILike("cat.name", `%${topic}%`);
+		});
+	}
+
+	if (sortBy && order) {
+		query.orderBy(sortBy, order);
+	}
+
+	if (sortBy && !order) {
+		query.orderBy(sortBy, "desc");
+	}
+
+	const courses = await query;
+
+	return courses;
 };
+
+const getCoursesWithFilter = async (filter) => {};
 
 const getCourseById = async (courseId) => {
 	return knex({ c: TABLE_NAME })
