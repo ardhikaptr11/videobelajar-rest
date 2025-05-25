@@ -6,10 +6,10 @@ const { handleRegister, handleLogin, handleEmailVerification } = require("../con
 const router = express.Router();
 
 // Register new user
-router.post("/register", validateRegister, handleRegister);
+router.post("/auth/register", validateRegister, handleRegister);
 // Login existing user
-router.post("/login", validateLogin, handleLogin);
+router.post("/auth/login", validateLogin, handleLogin);
 // Verify user
-router.get("/verify-email", validateVerification, handleEmailVerification);
+router.get("/auth/verify-email", validateVerification, handleEmailVerification);
 
 module.exports = router;

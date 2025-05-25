@@ -2,7 +2,10 @@ const express = require("express");
 
 const router = express.Router();
 
-const verifyToken = require("../middleware/auth.middleware")
+const authenticate = require("../middleware/auth.middleware");
+const uploadSingleImage = require("../middleware/upload.middleware");
+const { validateRoleAccess, validateUserDataBeforeUpdate } = require("../middleware/validation.middleware");
+const { checkUploadError } = require("../middleware/error.middleware");
 
 const {
 	handleCreateNewUser,
@@ -12,15 +15,37 @@ const {
 	handleDeleteUserData
 } = require("../controllers/user.controller");
 
-// Create new user
-router.post("/user", handleCreateNewUser);
 // Get all users
-router.get("/users", verifyToken, handleGetUsers);
+router.get("/users", authenticate, validateRoleAccess, handleGetUsers);
 // Get one user by ID
-router.get("/user/:id", handleGetOneUser);
+router.get("/user/:id", authenticate, validateRoleAccess, handleGetOneUser);
 // Update user
-router.patch("/user/:id", handleUpdateUserData);
+router.patch(
+	"/user/:id",
+	authenticate,
+	validateRoleAccess,
+	uploadSingleImage("avatar_img"),
+	checkUploadError,
+	validateUserDataBeforeUpdate,
+	handleUpdateUserData
+);
+
 // Delete user
-router.delete("/user/:id", handleDeleteUserData);
+router.delete("/user/:id", authenticate, validateRoleAccess, handleDeleteUserData);
+
+// Upload image
+router.post("/upload", uploadSingleImage("avatar_img"), checkUploadError, (req, res) => {
+	const { file } = req;
+
+	if (!file) {
+		return res.status(400).json({ code: 400, message: "No file uploaded", data: null });
+	}
+
+	return res.status(200).json({
+		code: 200,
+		message: "File uploaded successfully",
+		data: { url: file.path }
+	});
+});
 
 module.exports = router;
