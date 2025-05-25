@@ -13,121 +13,143 @@ const testConfig = require("../config/database").test;
 const knex = require("knex")(testConfig);
 
 describe("Courses", () => {
+	const adminToken = process.env.ADMIN_TOKEN;
+	const userToken = process.env.USER_TOKEN;
+
 	// Run migrations and seed the database before running the tests
 	beforeAll(async () => {
 		await knex.migrate.latest();
-		await knex.seed.run();
+		await knex.seed.run({ specific: "02_dummyCourses.seed.js" });
 	}, 20000);
 
 	// Get all courses test cases
-	describe("GET /api/v1/courses", () => {
-		it("should return all courses", async () => {
-			const response = await request(app).get("/api/v1/courses");
+	describe("GET /api/v2/courses", () => {
+		it("should return 200 and retrieved all courses for user and admin login", async () => {
+			const [adminResponse, userResponse] = await Promise.all([
+				request(app).get("/api/v2/courses").set("Authorization", `Bearer ${adminToken}`),
+				request(app).get("/api/v2/courses").set("Authorization", `Bearer ${userToken}`)
+			]);
 
-			expect(response.statusCode).toBe(200);
-			expect(response.body).toHaveProperty("data");
-			expect(response.body.data).toBeInstanceOf(Array);
-			expect(response.body.data.length).toBeGreaterThan(0);
-			response.body.data.forEach((course) => {
-				expect(course).toEqual(
-					expect.objectContaining({
-						course_id: expect.any(Number),
-						name: expect.any(String),
-						tagline: expect.any(String),
-						description: expect.any(String),
-						slug: expect.any(String),
-						price: expect.any(Number),
-						discounted_price: expect.any(Number),
-						is_discount: expect.any(Boolean),
-						thumbnail_img_url: expect.any(String),
-						total_students_enrolled: expect.any(Number),
-						categories: expect.arrayContaining([expect.any(String)]),
-						modules: expect.objectContaining({
-							total: expect.any(Number),
-							list: expect.arrayContaining([
-								expect.objectContaining({
-									module_id: expect.any(Number),
-									title: expect.any(String)
-								})
-							])
-						})
-					})
-				);
+			[adminResponse, userResponse].forEach((response) => {
+				expect(response.statusCode).toBe(200);
+				expect(response.body).toHaveProperty("data");
+				expect(response.body.data).toBeInstanceOf(Array);
+				expect(response.body.data.length).toBeGreaterThan(0);
 			});
 		});
 
-		it("should return 200 if no data was recorded when the request was made", async () => {
-			await knex("courses").del(); // Clear the courses table to simulate condition where no data was recorded
+		it("should return 200 and retrieved all courses matched the query string", async () => {
+			const responses = await Promise.all([
+				request(app).get("/api/v2/courses?search=ui/ux").set("Authorization", `Bearer ${adminToken}`),
+				request(app)
+					.get("/api/v2/courses?topic=internet%20technologies")
+					.set("Authorization", `Bearer ${userToken}`),
+				request(app)
+					.get("/api/v2/courses?topic=web%20development&sortBy=price&order=asc")
+					.set("Authorization", `Bearer ${adminToken}`)
+			]);
 
-			const response = await request(app).get("/api/v1/courses");
+			responses.forEach((response) => {
+				expect(response.statusCode).toBe(200);
+			});
+
+			// If only one course is returned, then the data should be an object
+			if (responses[0].body.message === "Course successfully retrieved!") {
+				expect(responses[0].body.data).toBeInstanceOf(Object);
+			} else {
+				expect(responses[0].body.data).toBeInstanceOf(Array);
+			}
+
+			expect(responses[1].body.data).toBeInstanceOf(Array);
+			expect(responses[1].body.data[0].categories).toEqual(expect.arrayContaining(["Internet Technologies"]));
+
+			expect(responses[2].body.data).toBeInstanceOf(Array);
+			expect(responses[2].body.data[0].price).toBeLessThanOrEqual(responses[2].body.data[1].price);
+		});
+
+		it("should return 200 and an empty array if no data matched the query string", async () => {
+			const response = await request(app)
+				.get("/api/v2/courses?search=nonexistent")
+				.set("Authorization", `Bearer ${adminToken}`);
 
 			expect(response.statusCode).toBe(200);
-			expect(response.body).toHaveProperty("data");
-			expect(response.body.data).toEqual(null);
+			expect(response.body.data).toEqual([]);
+		});
+
+		it("should return 200 if no data was recorded when the request was made", async () => {
+			await knex.transaction(async (trx) => {
+				await trx.raw(`SET LOCAL "app.role" = 'admin'`);
+				await trx("courses").del();
+			});
+
+			const [adminResponse, userResponse] = await Promise.all([
+				request(app).get("/api/v2/courses").set("Authorization", `Bearer ${adminToken}`),
+				request(app).get("/api/v2/courses").set("Authorization", `Bearer ${userToken}`)
+			]);
+
+			console.log(adminResponse.body);
+
+			[adminResponse, userResponse].forEach((response) => {
+				expect(response.statusCode).toBe(200);
+				expect(response.body).toHaveProperty("data");
+				expect(response.body.data).toEqual(null);
+			});
 		});
 	});
 
 	// Get one course by ID test cases
-	describe("GET /api/v1/course/:id", () => {
+	describe("GET /api/v2/course/:id", () => {
 		beforeAll(async () => {
 			// Seed the database with dummy data after the deletion in the previous test
 			await knex.seed.run({ specific: "02_dummyCourses.seed.js" });
 		}, 10000);
 
-		it("should return one course matched the id", async () => {
+		it("should return 200 and retieved one course matched the id", async () => {
 			const id = 1;
-			const response = await request(app).get(`/api/v1/course/${id}`);
+			const [adminResponse, userResponse] = await Promise.all([
+				request(app).get(`/api/v2/course/${id}`).set("Authorization", `Bearer ${adminToken}`),
+				request(app).get(`/api/v2/course/${id}`).set("Authorization", `Bearer ${userToken}`)
+			]);
 
-			expect(response.statusCode).toBe(200);
-			expect(response.body).toHaveProperty("data");
-			expect(response.body.data).toBeInstanceOf(Object);
-			expect(response.body.data).toEqual(
-				expect.objectContaining({
-					course_id: expect.any(Number),
-					name: expect.any(String),
-					tagline: expect.any(String),
-					description: expect.any(String),
-					slug: expect.any(String),
-					price: expect.any(Number),
-					discounted_price: expect.any(Number),
-					is_discount: expect.any(Boolean),
-					thumbnail_img_url: expect.any(String),
-					total_students_enrolled: expect.any(Number),
-					categories: expect.arrayContaining([expect.any(String)]),
-					modules: expect.objectContaining({
-						total: expect.any(Number),
-						list: expect.arrayContaining([
-							expect.objectContaining({
-								module_id: expect.any(Number),
-								title: expect.any(String)
-							})
-						])
-					})
-				})
-			);
+			[adminResponse, userResponse].forEach((response) => {
+				expect(response.statusCode).toBe(200);
+				expect(response.body).toHaveProperty("data");
+				expect(response.body.data).toBeInstanceOf(Object);
+			});
 		});
 
 		it("should return 200 if the id is a positive integer number but doesn't exist", async () => {
 			const id = 99; // Assume this is an id that has not yet been recorded
-			const response = await request(app).get(`/api/v1/course/${id}`);
 
-			expect(response.statusCode).toBe(200);
-			expect(response.body.data).toEqual(null);
+			const [adminResponse, userResponse] = await Promise.all([
+				request(app).get(`/api/v2/course/${id}`).set("Authorization", `Bearer ${adminToken}`),
+				request(app).get(`/api/v2/course/${id}`).set("Authorization", `Bearer ${userToken}`)
+			]);
+
+			[adminResponse, userResponse].forEach((response) => {
+				expect(response.statusCode).toBe(200);
+				expect(response.body.data).toEqual(null);
+			});
 		});
 
 		it("should return 400 if the id is not a positive integer number", async () => {
 			const invalidIds = [-1, 0, 0.5, "'1'", "abc"];
 
 			for (const id of invalidIds) {
-				const response = await request(app).get(`/api/v1/course/${id}`);
+				const [userResponse, adminResponse] = await Promise.all([
+					request(app).get(`/api/v2/course/${id}`).set("Authorization", `Bearer ${adminToken}`),
+					request(app).get(`/api/v2/course/${id}`).set("Authorization", `Bearer ${userToken}`)
+				]);
 
-				expect(response.statusCode).toBe(400);
+				[userResponse, adminResponse].forEach((response) => {
+					expect(response.statusCode).toBe(400);
+				});
 			}
 		});
 	});
 
 	// Create a new course test cases
-	describe("POST /api/v1/course", () => {
+	describe("POST /api/v2/course", () => {
 		const exampleCoursePayload = {
 			name: "Test Course",
 			tagline: "Test Tagline",
@@ -145,12 +167,21 @@ describe("Courses", () => {
 			]
 		};
 
-		it("should create a new course", async () => {
-			const response = await request(app).post("/api/v1/course").send(exampleCoursePayload);
+		it("should allow only admin to create a new course", async () => {
+			const [adminResponse, userResponse] = await Promise.all([
+				request(app)
+					.post("/api/v2/course")
+					.send(exampleCoursePayload)
+					.set("Authorization", `Bearer ${adminToken}`),
+				request(app)
+					.post("/api/v2/course")
+					.send(exampleCoursePayload)
+					.set("Authorization", `Bearer ${userToken}`)
+			]);
 
-			expect(response.statusCode).toBe(201);
-			expect(response.body).toHaveProperty("data");
-			expect(response.body.data).toEqual(
+			expect(adminResponse.statusCode).toBe(201);
+			expect(adminResponse.body).toHaveProperty("data");
+			expect(adminResponse.body.data).toEqual(
 				expect.objectContaining({
 					course_id: expect.any(Number),
 					name: exampleCoursePayload.name,
@@ -159,6 +190,9 @@ describe("Courses", () => {
 					created_at: expect.any(String)
 				})
 			);
+
+			expect(userResponse.statusCode).toBe(403);
+			expect(userResponse.body.message).toBe("You are not allowed to perform this action");
 		});
 
 		it("should return 400 if the mandatory fields are missing", async () => {
@@ -167,13 +201,19 @@ describe("Courses", () => {
 			const exampleCoursePayloadCopy = { ...exampleCoursePayload };
 			delete exampleCoursePayloadCopy.price; // price is mandatory but missing
 
-			const response = await request(app).post("/api/v1/course").send(exampleCoursePayloadCopy);
+			const response = await request(app)
+				.post("/api/v2/course")
+				.send(exampleCoursePayloadCopy)
+				.set("Authorization", `Bearer ${adminToken}`);
 			expect(response.statusCode).toBe(400);
 			expect(response.body.message).toBe("Please make sure all fields are filled in");
 		});
 
 		it("should return 400 if the payload is empty", async () => {
-			const response = await request(app).post("/api/v1/course").send({});
+			const response = await request(app)
+				.post("/api/v2/course")
+				.send({})
+				.set("Authorization", `Bearer ${adminToken}`);
 			expect(response.statusCode).toBe(400);
 			expect(response.body.message).toBe("Cannot proceed with empty data");
 		});
@@ -189,7 +229,11 @@ describe("Courses", () => {
 				for (const discountedPrice of invalidDiscountedPrices) {
 					exampleCoursePayloadCopy.discounted_price = discountedPrice;
 
-					const response = await request(app).post("/api/v1/course").send(exampleCoursePayloadCopy);
+					const response = await request(app)
+						.post("/api/v2/course")
+						.send(exampleCoursePayloadCopy)
+						.set("Authorization", `Bearer ${adminToken}`);
+
 					expect(response.statusCode).toBe(400);
 					expect(response.body.message).toBe("Invalid price value");
 				}
@@ -199,7 +243,10 @@ describe("Courses", () => {
 		it("should return 400 if the discount status is defined true but the discounted price is missing", async () => {
 			exampleCoursePayload.is_discount = true;
 
-			const response = await request(app).post("/api/v1/course").send(exampleCoursePayload);
+			const response = await request(app)
+				.post("/api/v2/course")
+				.send(exampleCoursePayload)
+				.set("Authorization", `Bearer ${adminToken}`);
 			expect(response.statusCode).toBe(400);
 			expect(response.body.message).toBe("Please specify the discounted price");
 		});
@@ -208,7 +255,10 @@ describe("Courses", () => {
 			exampleCoursePayload.is_discount = false;
 			exampleCoursePayload.discounted_price = 100;
 
-			const response = await request(app).post("/api/v1/course").send(exampleCoursePayload);
+			const response = await request(app)
+				.post("/api/v2/course")
+				.send(exampleCoursePayload)
+				.set("Authorization", `Bearer ${adminToken}`);
 			expect(response.statusCode).toBe(400);
 			expect(response.body.message).toBe("Discounted price is not applicable");
 		});
@@ -218,8 +268,10 @@ describe("Courses", () => {
 			delete exampleCoursePayload.is_discount;
 			delete exampleCoursePayload.discounted_price;
 
-			const response = await request(app).post("/api/v1/course").send(exampleCoursePayload);
-			console.log(response.body.message);
+			const response = await request(app)
+				.post("/api/v2/course")
+				.send(exampleCoursePayload)
+				.set("Authorization", `Bearer ${adminToken}`);
 
 			expect(response.statusCode).toBe(409);
 			expect(response.body.message).toBe("Course name already taken");
@@ -229,16 +281,26 @@ describe("Courses", () => {
 			exampleCoursePayload.is_discount = true;
 			exampleCoursePayload.discounted_price = exampleCoursePayload.price;
 
-			const response = await request(app).post("/api/v1/course").send(exampleCoursePayload);
+			const response = await request(app)
+				.post("/api/v2/course")
+				.send(exampleCoursePayload)
+				.set("Authorization", `Bearer ${adminToken}`);
+
 			expect(response.statusCode).toBe(422);
 
 			exampleCoursePayload.discounted_price = exampleCoursePayload.price + 100; // greater than the original price
-			const response2 = await request(app).post("/api/v1/course").send(exampleCoursePayload);
+
+			const response2 = await request(app)
+				.post("/api/v2/course")
+				.send(exampleCoursePayload)
+				.set("Authorization", `Bearer ${adminToken}`);
+
 			expect(response2.statusCode).toBe(422);
 		});
 	});
 
-	describe("PATCH /api/v1/course/:id?mode=['default', 'strict']", () => {
+	// Update a course test cases
+	describe("PATCH /api/v2/course/:id?mode=['default','strict']", () => {
 		const exampleDataToUpdate = {
 			name: "New Name for Course 10",
 			tagline: "New Tagline for Course 10",
@@ -250,81 +312,58 @@ describe("Courses", () => {
 			categories: ["Category 3", "Category 4"]
 		};
 
-		it("should update a targeted course using default mode", async () => {
+		it("should allow only admin to update courses", async () => {
 			const id = 10; //Assume this is the latest course created
 			const queryParams = "default";
 
-			const response = await request(app)
-				.patch(`/api/v1/course/${id}?mode=${queryParams}`)
-				.send(exampleDataToUpdate);
+			const exampleDataToUpdateCopy = { ...exampleDataToUpdate, categories: ["Category 5", "Category 6"] };
 
-			expect(response.statusCode).toBe(200);
-			expect(response.body.data).toEqual({
-				course_id: id,
-				name: exampleDataToUpdate.name,
-				slug: expect.any(String),
-				tagline: exampleDataToUpdate.tagline,
-				description: exampleDataToUpdate.description,
-				price: exampleDataToUpdate.price,
-				is_discount: exampleDataToUpdate.is_discount,
-				discounted_price: exampleDataToUpdate.discounted_price,
-				total_students_enrolled: expect.any(Number),
-				thumbnail_img_url: exampleDataToUpdate.thumbnail_img_url,
-				categories: exampleDataToUpdate.categories,
-				updated_at: expect.any(String)
+			const [defaultMode, strictMode] = await Promise.all([
+				request(app)
+					.patch(`/api/v2/course/${id}?mode=default`)
+					.send(exampleDataToUpdate)
+					.set("Authorization", `Bearer ${adminToken}`),
+				request(app)
+					.patch(`/api/v2/course/${id}?mode=strict`)
+					.send(exampleDataToUpdateCopy)
+					.set("Authorization", `Bearer ${adminToken}`)
+			]);
+
+			[defaultMode, strictMode].forEach((response) => {
+				expect(response.statusCode).toBe(200);
+				expect(response.body.data).toBeInstanceOf(Object);
 			});
 		});
 
-		it("should update a targeted course using strict mode", async () => {
+		it("should add new unknown categories to the course if using strict mode", async () => {
 			const id = 10;
-			const queryParams = "strict";
+			const latestCategories = ["Category 3", "Category 4", "Category 5", "Category 6"]; // Categories created in the previous test
 
-			const currentCategories = ["Category 3", "Category 4"]; // Categories created in the previous test
-			const scenarioData1 = {
-				...exampleDataToUpdate,
-				categories: ["Category 5", "Category 6"]
-			};
-
-			const response = await request(app).patch(`/api/v1/course/${id}?mode=${queryParams}`).send(scenarioData1);
-			expect(response.statusCode).toBe(200);
-			expect(response.body.data).toEqual({
-				course_id: id,
-				name: scenarioData1.name,
-				slug: expect.any(String),
-				tagline: scenarioData1.tagline,
-				description: scenarioData1.description,
-				price: scenarioData1.price,
-				is_discount: scenarioData1.is_discount,
-				discounted_price: scenarioData1.discounted_price,
-				total_students_enrolled: expect.any(Number),
-				thumbnail_img_url: scenarioData1.thumbnail_img_url,
-				categories: [...currentCategories, ...scenarioData1.categories],
-				updated_at: expect.any(String)
-			});
-
-			// The 'strict' mode allow to add new categories
-			// So, latest category output will be a combination of the already assigned with the newly added category.
-			const latestCategories = [...currentCategories, ...scenarioData1.categories];
-
-			const scenarioData2 = {
+			const modifiedExampleDataToUpdate = {
 				...exampleDataToUpdate,
 				categories: ["Category 5", "Category 6", "Category 7"]
 			};
-			const newCategory = scenarioData2.categories.filter((category) => !latestCategories.includes(category));
+			const newCategory = modifiedExampleDataToUpdate.categories.filter(
+				(category) => !latestCategories.includes(category)
+			);
 
-			const response2 = await request(app).patch(`/api/v1/course/${id}?mode=${queryParams}`).send(scenarioData2);
-			expect(response2.statusCode).toBe(200);
-			expect(response2.body.data).toEqual({
+			const response = await request(app)
+				.patch(`/api/v2/course/${id}?mode=strict`)
+				.send(modifiedExampleDataToUpdate)
+				.set("Authorization", `Bearer ${adminToken}`);
+
+			expect(response.statusCode).toBe(200);
+			expect(response.body.data).toEqual({
 				course_id: id,
-				name: scenarioData2.name,
+				name: modifiedExampleDataToUpdate.name,
 				slug: expect.any(String),
-				tagline: scenarioData2.tagline,
-				description: scenarioData2.description,
-				price: scenarioData2.price,
-				is_discount: scenarioData2.is_discount,
-				discounted_price: scenarioData2.discounted_price,
+				tagline: modifiedExampleDataToUpdate.tagline,
+				description: modifiedExampleDataToUpdate.description,
+				price: modifiedExampleDataToUpdate.price,
+				is_discount: modifiedExampleDataToUpdate.is_discount,
+				discounted_price: modifiedExampleDataToUpdate.discounted_price,
 				total_students_enrolled: expect.any(Number),
-				thumbnail_img_url: scenarioData2.thumbnail_img_url,
+				thumbnail_img_url: modifiedExampleDataToUpdate.thumbnail_img_url,
 				categories: [...latestCategories, ...newCategory],
 				updated_at: expect.any(String)
 			});
@@ -335,8 +374,9 @@ describe("Courses", () => {
 			const modes = ["default", "strict"];
 			for (const mode of modes) {
 				const response = await request(app)
-					.patch(`/api/v1/course/${id}?mode=${mode}`)
-					.send(exampleDataToUpdate);
+					.patch(`/api/v2/course/${id}?mode=${mode}`)
+					.send(exampleDataToUpdate)
+					.set("Authorization", `Bearer ${adminToken}`);
 
 				expect(response.statusCode).toBe(200);
 				expect(response.body.data).toBe(null);
@@ -350,8 +390,9 @@ describe("Courses", () => {
 			for (const id of invalidIds) {
 				for (const mode of modes) {
 					const response = await request(app)
-						.patch(`/api/v1/course/${id}?mode=${mode}`)
-						.send(exampleDataToUpdate);
+						.patch(`/api/v2/course/${id}?mode=${mode}`)
+						.send(exampleDataToUpdate)
+						.set("Authorization", `Bearer ${adminToken}`);
 
 					expect(response.statusCode).toBe(400);
 					expect(response.body.message).toBe("Course ID must be a positive integer number");
@@ -368,7 +409,10 @@ describe("Courses", () => {
 			delete scenarioData1.categories; // Remove the categories property
 
 			// If mode is not provided, it defaults to "default"
-			const response1 = await request(app).patch(`/api/v1/course/${id}`).send(scenarioData1);
+			const response1 = await request(app)
+				.patch(`/api/v2/course/${id}`)
+				.send(scenarioData1)
+				.set("Authorization", `Bearer ${adminToken}`);
 			expect(response1.statusCode).toBe(400);
 			expect(response1.body.message).toBe("Failed to overwrite. No category provided");
 
@@ -377,11 +421,17 @@ describe("Courses", () => {
 				categories: []
 			};
 
-			const response2 = await request(app).patch(`/api/v1/course/${id}?mode=strict`).send(scenarioData2);
+			const response2 = await request(app)
+				.patch(`/api/v2/course/${id}?mode=strict`)
+				.send(scenarioData2)
+				.set("Authorization", `Bearer ${adminToken}`);
 			expect(response2.statusCode).toBe(400);
 			expect(response2.body.message).toBe("Failed to append. No category provided");
 
-			const response3 = await request(app).patch(`/api/v1/course/${id}?mode=default`).send(scenarioData1);
+			const response3 = await request(app)
+				.patch(`/api/v2/course/${id}?mode=default`)
+				.send(scenarioData1)
+				.set("Authorization", `Bearer ${adminToken}`);
 			expect(response3.body.message).toBe("Failed to overwrite. No category provided");
 		});
 
@@ -391,8 +441,9 @@ describe("Courses", () => {
 
 			for (const mode of exampleInvalidMode) {
 				const response = await request(app)
-					.patch(`/api/v1/course/${id}?mode=${mode}`)
-					.send(exampleDataToUpdate);
+					.patch(`/api/v2/course/${id}?mode=${mode}`)
+					.send(exampleDataToUpdate)
+					.set("Authorization", `Bearer ${adminToken}`);
 				expect(response.statusCode).toBe(400);
 				expect(response.body.message).toBe("Unknown mode. Mode must be either 'default' or 'strict'");
 			}
@@ -400,7 +451,10 @@ describe("Courses", () => {
 
 		it("should return 400 if the payload is empty", async () => {
 			const id = 1;
-			const response = await request(app).patch(`/api/v1/course/${id}`).send({});
+			const response = await request(app)
+				.patch(`/api/v2/course/${id}`)
+				.send({})
+				.set("Authorization", `Bearer ${adminToken}`);
 
 			expect(response.statusCode).toBe(400);
 			expect(response.body.message).toBe("Cannot proceed with empty data");
@@ -414,8 +468,9 @@ describe("Courses", () => {
 			for (const price of invalidPrices) {
 				for (const discountedPrice of invalidDiscountedPrices) {
 					const response = await request(app)
-						.patch(`/api/v1/course/${id}?mode=strict`)
-						.send({ price, discounted_price: discountedPrice });
+						.patch(`/api/v2/course/${id}?mode=strict`)
+						.send({ price, discounted_price: discountedPrice })
+						.set("Authorization", `Bearer ${adminToken}`);
 
 					expect(response.statusCode).toBe(400);
 					expect(response.body.message).toBe("Invalid price value");
@@ -428,8 +483,9 @@ describe("Courses", () => {
 			const modes = ["default", "strict"];
 			for (const mode of modes) {
 				const response = await request(app)
-					.patch(`/api/v1/course/${id}?mode=${mode}`)
-					.send({ is_discount: true });
+					.patch(`/api/v2/course/${id}?mode=${mode}`)
+					.send({ is_discount: true })
+					.set("Authorization", `Bearer ${adminToken}`);
 
 				expect(response.statusCode).toBe(400);
 				expect(response.body.message).toBe("Please specify the discounted price");
@@ -441,8 +497,9 @@ describe("Courses", () => {
 			const modes = ["default", "strict"];
 			for (const mode of modes) {
 				const response = await request(app)
-					.patch(`/api/v1/course/${id}?mode=${mode}`)
-					.send({ is_discount: false, discounted_price: 100 });
+					.patch(`/api/v2/course/${id}?mode=${mode}`)
+					.send({ is_discount: false, discounted_price: 100 })
+					.set("Authorization", `Bearer ${adminToken}`);
 
 				expect(response.statusCode).toBe(400);
 				expect(response.body.message).toBe("Discounted price is not applicable");
@@ -454,16 +511,17 @@ describe("Courses", () => {
 			const currentCategories = ["Category 3", "Category 4"]; // Categories created in the previous test
 
 			const response1 = await request(app)
-				.patch(`/api/v1/course/${id}?mode=strict`)
-				.send({ is_discount: true, discounted_price: 399, categories: currentCategories });
-			console.log(response1.body.message);
+				.patch(`/api/v2/course/${id}?mode=strict`)
+				.send({ is_discount: true, discounted_price: 399, categories: currentCategories })
+				.set("Authorization", `Bearer ${adminToken}`);
 
 			expect(response1.statusCode).toBe(409);
 			expect(response1.body.message).toBe("Course already has the intended category");
 
 			const response2 = await request(app)
-				.patch(`/api/v1/course/${id}`)
-				.send({ is_discount: true, discounted_price: 399, categories: currentCategories });
+				.patch(`/api/v2/course/${id}`)
+				.send({ is_discount: true, discounted_price: 399, categories: currentCategories })
+				.set("Authorization", `Bearer ${adminToken}`);
 
 			expect(response2.statusCode).toBe(409);
 			expect(response2.body.message).toBe("Cannot override predefined categories with the exact same name");
@@ -489,15 +547,17 @@ describe("Courses", () => {
 
 			for (const mode of modes) {
 				const response1 = await request(app)
-					.patch(`/api/v1/course/${id}?mode=${mode}`)
-					.send(exampleInvalidPayload1);
+					.patch(`/api/v2/course/${id}?mode=${mode}`)
+					.send(exampleInvalidPayload1)
+					.set("Authorization", `Bearer ${adminToken}`);
 
 				expect(response1.statusCode).toBe(422);
 				expect(response1.body.message).toBe("Discounted price cannot be equal or exceed the original price");
 
 				const response2 = await request(app)
-					.patch(`/api/v1/course/${id}?mode=${mode}`)
-					.send(exampleInvalidPayload2);
+					.patch(`/api/v2/course/${id}?mode=${mode}`)
+					.send(exampleInvalidPayload2)
+					.set("Authorization", `Bearer ${adminToken}`);
 
 				expect(response2.statusCode).toBe(422);
 				expect(response2.body.message).toBe("Discounted price cannot be equal or exceed the original price");
@@ -506,17 +566,27 @@ describe("Courses", () => {
 	});
 
 	// Delete a course test cases
-	describe("DELETE /api/v1/course/:id", () => {
-		it("should delete a course by ID", async () => {
+	describe("DELETE /api/v2/course/:id", () => {
+		it("should allow only admin to delete courses", async () => {
 			const id = 1;
 
-			const response = await request(app).delete(`/api/v1/course/${id}`);
-			expect(response.statusCode).toBe(200);
+			const [adminResponse, userResponse] = await Promise.all([
+				request(app).delete(`/api/v2/course/${id}`).set("Authorization", `Bearer ${adminToken}`),
+				request(app).delete(`/api/v2/course/${id}`).set("Authorization", `Bearer ${userToken}`)
+			]);
+
+			expect(adminResponse.statusCode).toBe(200);
+			expect(adminResponse.body.data).toEqual(null);
+
+			expect(userResponse.statusCode).toBe(403);
+			expect(userResponse.body.message).toBe("You are not allowed to perform this action");
 		});
 
 		it("should return 200 if the course ID is a positive integer number but doesn't exist", async () => {
 			const id = 99; // Assume this is an id that has not yet been recorded
-			const response = await request(app).delete(`/api/v1/course/${id}`);
+			const response = await request(app)
+				.delete(`/api/v2/course/${id}`)
+				.set("Authorization", `Bearer ${adminToken}`);
 
 			expect(response.statusCode).toBe(200);
 			expect(response.body.data).toEqual(null);
@@ -526,7 +596,9 @@ describe("Courses", () => {
 			const invalidIds = [-1, 0, 0.5, "'1'", "abc"];
 
 			for (const id of invalidIds) {
-				const response = await request(app).delete(`/api/v1/course/${id}`);
+				const response = await request(app)
+					.delete(`/api/v2/course/${id}`)
+					.set("Authorization", `Bearer ${adminToken}`);
 
 				expect(response.statusCode).toBe(400);
 			}

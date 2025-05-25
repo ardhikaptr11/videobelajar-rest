@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
+const { validateRoleAccess, validateDataBeforeProceed } = require("../middleware/validation.middleware");
+const authenticate = require("../middleware/auth.middleware");
+
 const {
 	handleCreateNewCourse,
 	handleGetAllCourses,
@@ -10,14 +13,14 @@ const {
 } = require("../controllers/course.controller");
 
 // Get all courses
-router.get("/courses", handleGetAllCourses);
+router.get("/courses", authenticate, validateRoleAccess, handleGetAllCourses);
 // Get one course by ID
-router.get("/course/:id", handleGetOneCourse);
+router.get("/course/:id", authenticate, validateRoleAccess, validateDataBeforeProceed, handleGetOneCourse);
 // Create new course
-router.post("/course", handleCreateNewCourse);
+router.post("/course", authenticate, validateRoleAccess, validateDataBeforeProceed, handleCreateNewCourse);
 // Update course
-router.patch("/course/:id", handleUpdateCourseData);
+router.patch("/course/:id", authenticate, validateRoleAccess, validateDataBeforeProceed, handleUpdateCourseData);
 // Delete course
-router.delete("/course/:id", handleDeleteCourseData);
+router.delete("/course/:id", authenticate, validateRoleAccess, validateDataBeforeProceed, handleDeleteCourseData);
 
 module.exports = router;

@@ -1,8 +1,9 @@
-const createServer = require("./utils/server");
 const path = require("path");
 require("@dotenvx/dotenvx").config({ path: path.join(__dirname, "../.env") });
 
+const createServer = require("./utils/server");
 const swaggerDocs = require("./utils/swagger");
+const verifyEmailConfig = require("./utils/mail");
 
 const app = createServer();
 
