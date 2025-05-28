@@ -67,12 +67,12 @@ describe("Courses", () => {
 			expect(responses[2].body.data[0].price).toBeLessThanOrEqual(responses[2].body.data[1].price);
 		});
 
-		it("should return 200 and an empty array if no data matched the query string", async () => {
+		it("should return 404 and an empty array if no data matched the query string", async () => {
 			const response = await request(app)
 				.get("/api/v2/courses?search=nonexistent")
 				.set("Authorization", `Bearer ${adminToken}`);
 
-			expect(response.statusCode).toBe(200);
+			expect(response.statusCode).toBe(404);
 			expect(response.body.data).toEqual([]);
 		});
 
@@ -118,7 +118,7 @@ describe("Courses", () => {
 			});
 		});
 
-		it("should return 200 if the id is a positive integer number but doesn't exist", async () => {
+		it("should return 404 if the id is a positive integer number but doesn't exist", async () => {
 			const id = 99; // Assume this is an id that has not yet been recorded
 
 			const [adminResponse, userResponse] = await Promise.all([
@@ -127,7 +127,7 @@ describe("Courses", () => {
 			]);
 
 			[adminResponse, userResponse].forEach((response) => {
-				expect(response.statusCode).toBe(200);
+				expect(response.statusCode).toBe(404);
 				expect(response.body.data).toEqual(null);
 			});
 		});
@@ -369,7 +369,7 @@ describe("Courses", () => {
 			});
 		});
 
-		it("should return 200 if the id is a positive integer number but doesn't exist", async () => {
+		it("should return 404 if the id is a positive integer number but doesn't exist", async () => {
 			const id = 99;
 			const modes = ["default", "strict"];
 			for (const mode of modes) {
@@ -378,7 +378,7 @@ describe("Courses", () => {
 					.send(exampleDataToUpdate)
 					.set("Authorization", `Bearer ${adminToken}`);
 
-				expect(response.statusCode).toBe(200);
+				expect(response.statusCode).toBe(404);
 				expect(response.body.data).toBe(null);
 			}
 		});

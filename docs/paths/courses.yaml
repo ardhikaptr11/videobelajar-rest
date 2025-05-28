@@ -1,0 +1,92 @@
+GetAllCourses:
+  get:
+    tags:
+    - Courses
+    summary: Get All Courses
+    responses:
+      '200':
+        $ref: '../components/responses.yaml#/GetAllCoursesResponse'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+CreateCourse:
+  post:
+    tags:
+    - Courses
+    summary: Create a New Course
+    requestBody:
+      $ref: '../components/requestBodies.yaml#/CreateCourseReqBody'
+    responses:
+      '201':
+        $ref: '../components/responses.yaml#/SuccessCreateCourse'
+      '400':
+        $ref: '../components/responses.yaml#/BadRequestCreateCourse'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/ForbiddenPerformAction'
+      '409':
+        $ref: '../components/responses.yaml#/CreateCourseConflict'
+      '422':
+        $ref: '../components/responses.yaml#/UnprocessableContent_Course'
+
+CourseById:
+  get:
+    tags:
+    - Courses
+    summary: Get Course by ID
+    parameters:
+    - $ref: '../components/parameters.yaml#/CourseIdParam'
+    description: Get one specific course matched the id
+    responses:
+      '200':
+        $ref: '../components/responses.yaml#/GetOneCourseResponse'
+      '400':
+        $ref: '../components/responses.yaml#/BadRequestInvalidId_Course'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/CourseNotFound'
+  patch:
+    tags:
+    - Courses
+    summary: Update Course by ID
+    parameters:
+    - $ref: '../components/parameters.yaml#/CourseIdParam'
+    - $ref: '../components/parameters.yaml#/UpdateModeQueryParam'
+    description: Update one specific course matched the id
+    requestBody:
+      $ref: '../components/requestBodies.yaml#/UpdateCourseReqBody'
+    responses:
+      '200':
+        $ref: '../components/responses.yaml#/SuccessUpdateCourse'
+      '400':
+        $ref: '../components/responses.yaml#/BadRequestUpdateCourse'
+      '409':
+        $ref: '../components/responses.yaml#/UpdateCourseConflict'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/ForbiddenPerformAction'
+      '404':
+        $ref: '../components/responses.yaml#/CourseNotFound'
+      '422':
+        $ref: '../components/responses.yaml#/UnprocessableContent_Course'
+  delete:
+    tags:
+    - Courses
+    summary: Delete Course by ID
+    parameters:
+    - $ref: '../components/parameters.yaml#/CourseIdParam'
+    description: Delete one specific course matched the id
+    responses:
+      '200':
+        $ref: '../components/responses.yaml#/SuccessDeleteCourse'
+      '400':
+        $ref: '../components/responses.yaml#/BadRequestInvalidId_Course'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/ForbiddenPerformAction'
+      '404':
+        $ref: '../components/responses.yaml#/CourseNotFound'

@@ -31,23 +31,23 @@ describe("Authtentication", () => {
 			password: "John123!"
 		};
 
-		it("should return 200 if email is reserved", async () => {
+		it("should return 400 if email is reserved", async () => {
 			const userDataCopy = { ...userData, email: process.env.ADMIN_EMAIL };
 			const response = await request(app).post("/api/v2/auth/register").send(userDataCopy);
 
-			expect(response.statusCode).toBe(200);
+			expect(response.statusCode).toBe(400);
 			expect(response.body.message).toBe("Unable to use reserved email");
 		});
 
-		it("should return 200 if email is invalid", async () => {
+		it("should return 400 if email is invalid", async () => {
 			const userDataCopy = { ...userData, email: "invalid-email" };
 			const response = await request(app).post("/api/v2/auth/register").send(userDataCopy);
 
-			expect(response.statusCode).toBe(200);
+			expect(response.statusCode).toBe(400);
 			expect(response.body.message).toBe("Invalid email");
 		});
 
-		it("should return 200 if phone number is invalid", async () => {
+		it("should return 400 if phone number is invalid", async () => {
 			// Phone number should not start with 0 and should be 10-13 digits long
 			const invalidPhoneNumbers = [
 				"0812345678901", // starts with 0
@@ -60,7 +60,7 @@ describe("Authtentication", () => {
 				const userDataCopy = { ...userData, phone };
 				const response = await request(app).post("/api/v2/auth/register").send(userDataCopy);
 
-				expect(response.statusCode).toBe(200);
+				expect(response.statusCode).toBe(400);
 				expect(response.body.message).toBe("Invalid phone number");
 			});
 		});
@@ -73,7 +73,7 @@ describe("Authtentication", () => {
 			expect(response.body.data).toBeInstanceOf(Object);
 		});
 
-		it("should return 200 if password is too weak", async () => {
+		it("should return 400 if password is too weak", async () => {
 			// Password should contain at least 8 characters, including uppercase, lowercase, numbers, and special characters
 			const weakPasswords = [
 				"12345678", // only numbers
@@ -89,7 +89,7 @@ describe("Authtentication", () => {
 				const userDataCopy = { ...userData, password };
 				const response = await request(app).post("/api/v2/auth/register").send(userDataCopy);
 
-				expect(response.statusCode).toBe(200);
+				expect(response.statusCode).toBe(400);
 				expect(response.body.message).toBe("Password is too weak");
 			});
 		});
@@ -131,20 +131,18 @@ describe("Authtentication", () => {
 			expect(user.is_verified).toBe(true);
 		});
 
-		it("should return 200 if token is invalid", async () => {
+		it("should return 400 if token is invalid", async () => {
 			const verification_token = "some-invalid-token";
 			const response = await request(app).get(`/api/v2/auth/verify-email?token=${verification_token}`);
 
-			expect(response.statusCode).toBe(200);
+			expect(response.statusCode).toBe(400);
 			expect(response.body.message).toBe("Token not recognized");
 		});
 
-		it("should return 200 if user is already verified", async () => {
+		it("should return 409 if user is already verified", async () => {
 			const response = await request(app).get(`/api/v2/auth/verify-email?token=${verification_token}`);
 
-			// const user = await getUserByVerifToken(verification_token);
-
-			expect(response.statusCode).toBe(200);
+			expect(response.statusCode).toBe(409);
 			expect(user.is_verified).toBe(true);
 			expect(response.body.message).toBe("User already verified");
 		});
@@ -178,7 +176,7 @@ describe("Authtentication", () => {
 			});
 		});
 
-		it("should return 200 if email or password is invalid", async () => {
+		it("should return 401 if email or password is invalid", async () => {
 			const [adminResponse, userResponse] = await Promise.all([
 				request(app).post("/api/v2/auth/login").send({
 					email: process.env.ADMIN_EMAIL,
@@ -190,30 +188,30 @@ describe("Authtentication", () => {
 			]);
 
 			[adminResponse, userResponse].forEach((response) => {
-				expect(response.statusCode).toBe(200);
+				expect(response.statusCode).toBe(401);
 			});
 			expect(adminResponse.body.message).toBe("Invalid admin credentials");
 			expect(userResponse.body.message).toBe("Invalid email or password");
 		});
 
-		it("should return 200 if email and password valid but user not found", async () => {
+		it("should return 404 if email and password valid but user not found", async () => {
 			const response = await request(app).post("/api/v2/auth/login").send({
 				email: "jane.doe@example.com",
 				password: "Jane123!"
 			});
 
-			expect(response.statusCode).toBe(200);
+			expect(response.statusCode).toBe(404);
 			expect(response.body.message).toBe("User not found");
 		});
 
-		it("should return 200 if user is not verified", async () => {
+		it("should return 403 if user is not verified", async () => {
 			const targetId = user.user_id;
 
 			await updateUserDataByRole("user", targetId, { is_verified: false });
 
 			const response = await request(app).post("/api/v2/auth/login").send(exampleLoginCreds);
 
-			expect(response.statusCode).toBe(200);
+			expect(response.statusCode).toBe(403);
 			expect(response.body.message).toBe("Cannot login, please verify your account first");
 		});
 

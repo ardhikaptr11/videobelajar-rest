@@ -1,0 +1,55 @@
+CourseIdParam:
+  name: course_id
+  required: true
+  description: A unique identifier for the course
+  in: path
+  schema:
+    oneOf:
+    - type: number
+    - type: string
+    - type: integer
+    minimum: 1
+    maximum: 9999
+  examples:
+    validId:
+      summary: Valid Id
+      value: 10
+    invalidId:
+      summary: Invalid Id
+      value: -1
+    nonIntegerId:
+      summary: Non-integer Id
+      value: abc
+
+UpdateModeQueryParam:
+  name: mode
+  in: query
+  schema:
+    type: string
+    enum:
+    - default
+    - strict
+    default: default
+  description: |-
+    Mode for updating categories in course (if defined in the payload)
+    - `default`: overwrite old categories with new ones 
+    - `strict`: add new ones without overwriting them
+
+VerificationToken:
+  name: token
+  in: query
+  required: true
+  schema:
+    type: string
+  description: The token sent to the user's email for verification.
+
+UserIdParam:
+  name: user_id
+  in: path
+  required: true
+  description: |
+    - A unique identifier for the user, typically a UUID. This parameter is used to identify the user in various operations such as fetching user details, updating user information, or deleting a user account.
+    - Only admins can run this endpoint with the given example UUID. If you are not an admin, use your own user_id.
+  schema:
+    type: string
+  example: 621ec4bf-f067-490c-bc4e-cd93e2d73e49

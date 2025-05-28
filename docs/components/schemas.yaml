@@ -1,0 +1,305 @@
+components:
+  schemas:
+    ResponseHead:
+      title: ResponseHead
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+
+    GeneralCourseProperties:
+      type: object
+      properties:
+        course_id:
+          type: integer
+        name:
+          type: string
+        categories:
+          type: array
+          items:
+            type: string
+        total_students_enrolled:
+          type: integer
+        created_at:
+          type: string
+
+    CourseResponseBody:
+      allOf:
+      - $ref: '#/components/schemas/GeneralCourseProperties'
+      - type: object
+        properties:
+          slug:
+            type: string
+          discounted_price:
+            type: integer
+          is_discount:
+            type: boolean
+            default: false
+          thumbnail_img_url:
+            type: string
+
+    GetOneCourseResponse:
+      title: GetOneCourseResponse
+      allOf:
+      - $ref: '#/components/schemas/ResponseHead'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/CourseResponseBody'
+
+    GetAllCoursesResponse:
+      title: GetAllCoursesResponse
+      allOf:
+      - $ref: '#/components/schemas/ResponseHead'
+      - type: object
+        properties:
+          data:
+            type: array
+            items:
+              $ref: '#/components/schemas/CourseResponseBody'
+
+    CourseRequestBody:
+      allOf:
+      - $ref: '#/components/schemas/GeneralCourseProperties'
+      - type: object
+        required:
+        - name
+        - tagline
+        - description
+        - price
+        - thumbnail_img_url
+        - categories
+        - modules
+        properties:
+          tagline:
+            type: string
+          description:
+            type: string
+          price:
+            type: integer
+          thumbnail_img_url:
+            type: string
+          categories:
+            type: array
+            items:
+              type: string
+          modules:
+            type: array
+            items:
+              type: object
+              properties:
+                title:
+                  type: string
+
+    SuccessCreateCourseResponse:
+      allOf:
+      - $ref: '#/components/schemas/ResponseHead'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/GeneralCourseProperties'
+
+    ValidRequest:
+      allOf:
+      - $ref: '#/components/schemas/ResponseHead'
+      - type: object
+        properties:
+          data:
+            nullable: true
+            type: object
+
+    UnsuccessfulResponse:
+      title: UnsuccessfulResponse
+      allOf:
+      - $ref: '#/components/schemas/ResponseHead'
+      - type: object
+        properties:
+          data:
+            nullable: true
+            type: object
+
+    GeneralUserProperties:
+      type: object
+      properties:
+        email:
+          type: string
+
+    UserResponseBody:
+      allOf:
+      - $ref: '#/components/schemas/GeneralUserProperties'
+      - type: object
+        properties:
+          user_id:
+            type: string
+          full_name:
+            type: string
+          gender:
+            type: string
+          phone:
+            type: string
+    
+    ExtendedUserResponseBody:
+      allOf:
+      - $ref: '#/components/schemas/UserResponseBody'
+      - type: object
+        properties:
+          avatar_url:
+            type: string
+          verif_token:
+            type: string
+          is_verified:
+            type: boolean
+
+    GetAllUsersResponse:
+      allOf:
+      - $ref: '#/components/schemas/ResponseHead'
+      - type: object
+        properties:
+          data:
+            type: array
+            items:
+              $ref: '#/components/schemas/UserResponseBody'
+    
+    GetOneUserResponse:
+      allOf:
+      - $ref: '#/components/schemas/ResponseHead'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/ExtendedUserResponseBody'
+        
+    UpdateUserReqBodyJSON:
+      allOf:
+      - $ref: '#/components/schemas/GeneralUserProperties'
+      - type: object
+        properties:
+          full_name:
+            type: string
+          phone:
+            type: string
+            pattern: '^\d{9,13}$'
+    
+    UpdateUserReqBodyFormData:
+      type: object
+      properties:
+        full_name:
+          type: string
+          example: John Peter Doe
+        email:
+          type: string
+          format: email
+          example: jp.doe@example.com
+        avatar_img:
+          type: string
+          format: binary
+          description: Upload image file (JPG, JPEG, PNG)
+
+    SuccessUpdateUserResponse:
+      allOf:
+      - $ref: '#/components/schemas/ResponseHead'
+      - type: object
+        properties:
+          data:
+            type: object
+            properties:
+              success:
+                type: boolean
+              user_id:
+                type: string
+              full_name:
+                type: string
+              email:
+                type: string
+              phone:
+                type: string
+              is_verified:
+                type: boolean
+              avatar_url:
+                type: string
+
+    RegisterReqBody:
+      allOf:
+      - $ref: '#/components/schemas/GeneralUserProperties'
+      - type: object
+        required:
+        - full_name
+        - email
+        - gender
+        - phone
+        - password
+        properties:
+          full_name:
+            type: string
+          gender:
+            type: string
+          phone:
+            type: string
+            pattern: '^\d{9,13}$'
+          password:
+            type: string
+
+    RegisterResponseBody:
+      allOf:
+      - $ref: '#/components/schemas/GeneralUserProperties'
+      - type: object
+        properties:
+          user_id:
+            type: string
+          full_name:
+            type: string
+          verif_token:
+            type: string
+          is_verified:
+            type: boolean
+          created_at:
+            type: string
+
+    LoginResponseBody:
+      type: object
+      properties:
+        token:
+          type: string
+        lastLogin:
+          type: string
+
+    SuccessRegisterUserResponse:
+      allOf:
+      - $ref: '#/components/schemas/ResponseHead'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/RegisterResponseBody'
+
+    SuccessVerifyEmailResponse:
+      allOf:
+      - $ref: '#/components/schemas/ResponseHead'
+      - $ref: '#/components/schemas/GeneralUserProperties'
+      - type: object
+        properties:
+          user_id:
+            type: string
+          is_verified:
+            type: boolean
+          verified_at:
+            type: string
+
+    LoginReqBody:
+      allOf:
+      - $ref: '#/components/schemas/GeneralUserProperties'
+      - type: object
+        required:
+        - email
+        - password
+        properties:
+          password:
+            type: string
+
+    SuccessLoginResponse:
+      allOf:
+      - $ref: '#/components/schemas/ResponseHead'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/LoginResponseBody'

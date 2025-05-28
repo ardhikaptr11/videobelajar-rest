@@ -111,6 +111,12 @@ const handleEmailVerification = async (req, res, next) => {
 
 		const result = await updateUserDataByRole("user", targetId, { is_verified: true });
 
+		const verified_at = new Intl.DateTimeFormat("en-GB", {
+			dateStyle: "long",
+			timeStyle: "long",
+			timeZone: "Asia/Jakarta"
+		}).format(new Date());
+
 		return res.status(200).json({
 			code: 200,
 			message: "Verification success!",
@@ -118,7 +124,7 @@ const handleEmailVerification = async (req, res, next) => {
 				user_id: result.user_id,
 				email: result.email,
 				is_verified: result.is_verified,
-				verified_at: Date.now()
+				verified_at
 			}
 		});
 	} catch (error) {

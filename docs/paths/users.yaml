@@ -1,0 +1,71 @@
+GetAllUsers:
+  get:
+    summary: Get all users
+    description: Retrieve a list of all available users in the database.
+    tags:
+      - Users
+    responses:
+      '200':
+        $ref: '../components/responses.yaml#/SuccessGetAllUsersResponse'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/ForbiddenRead'
+
+UserById:
+  get:
+    summary: Get user by ID
+    description: Retrieve a specific user by their unique ID.
+    tags:
+      - Users
+    parameters:
+      - $ref: '../components/parameters.yaml#/UserIdParam'
+    responses:
+      '200':
+        $ref: '../components/responses.yaml#/SuccessGetOneUserResponse'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/ForbiddenRead'
+      '404':
+        $ref: '../components/responses.yaml#/UserNotFound'
+  patch:
+    summary: Update user by ID
+    description: Update the details of a specific user by their unique ID.
+    tags:
+      - Users
+    parameters:
+      - $ref: '../components/parameters.yaml#/UserIdParam'
+    requestBody:
+      $ref: '../components/requestBodies.yaml#/UpdateUserReqBody'
+    responses:
+      '200':
+        $ref: '../components/responses.yaml#/SuccessUpdateUserResponse'
+      '400':
+        $ref: '../components/responses.yaml#/BadRequestUpdateUser'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/ForbiddenPerformAction'
+      '404':
+        $ref: '../components/responses.yaml#/UserNotFound'
+      '409':
+        $ref: '../components/responses.yaml#/UnprocessableContent_User'
+      '415':
+        $ref: '../components/responses.yaml#/UnsupportedMediaType'
+  delete:
+    summary: Delete user by ID
+    description: Delete a specific user by their unique ID.
+    tags:
+      - Users
+    parameters:
+      - $ref: '../components/parameters.yaml#/UserIdParam'
+    responses:
+      '200':
+        $ref: '../components/responses.yaml#/SuccessDeleteUserResponse'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/ForbiddenPerformAction'
+      '404':
+        $ref: '../components/responses.yaml#/UserNotFound'

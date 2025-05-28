@@ -79,8 +79,8 @@ const handleGetAllCourses = async (req, res, next) => {
 		}
 
 		if (filters && courses.length === 0) {
-			return res.status(200).json({
-				code: 200,
+			return res.status(404).json({
+				code: 404,
 				message: "Course not found",
 				data: courses
 			});
@@ -126,8 +126,8 @@ const handleGetOneCourse = async (req, res, next) => {
 		const course = await getCourseById(id);
 
 		if (!course) {
-			return res.status(200).json({
-				code: 200,
+			return res.status(404).json({
+				code: 404,
 				message: "Course not found",
 				data: null
 			});
@@ -165,8 +165,8 @@ const handleUpdateCourseData = async (req, res, next) => {
 
 		const isCourseExist = await getCourseById(id);
 		if (!isCourseExist) {
-			return res.status(200).json({
-				code: 200,
+			return res.status(404).json({
+				code: 404,
 				message: "Course not found",
 				data: null
 			});

@@ -1,0 +1,111 @@
+CreateCourseReqBody:
+  description: Request payload to create a course
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/CourseRequestBody'
+      examples:
+        SuccessCreateCourse:
+          $ref: './examples.yaml#/SuccessCreateCourse'
+        MissingMandatoryProperty:
+          $ref: './examples.yaml#/MissingMandatoryProperty_Course'
+        EmptyPayload:
+          $ref: './examples.yaml#/EmptyPayload'
+        InvalidPriceType:
+          $ref: './examples.yaml#/InvalidPriceType_Create'
+        MissingDiscountedPrice:
+          $ref: './examples.yaml#/MissingDiscountedPrice_Create'
+        DiscountedPriceNotApplicable:
+          $ref: './examples.yaml#/DiscountedPriceNotApplicable_Create'
+        DiscountedPriceGTEOriginalPrice:
+          $ref: './examples.yaml#/DiscountedPriceGTEOriginalPrice_Create'
+        CourseNameAlreadyTaken:
+          $ref: './examples.yaml#/CourseNameAlreadyTaken'
+
+UpdateCourseReqBody:
+  description: Request payload to update a course
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/CourseRequestBody'
+      examples:
+        SuccessUpdateCourse:
+          $ref: './examples.yaml#/SuccessUpdateCourse_Default'
+        StrictModeSuccess:
+          $ref: './examples.yaml#/SuccessUpdateCourse_Strict'
+        StrictModeError:
+          $ref: './examples.yaml#/StrictModeError'
+        DefaultModeError:
+          $ref: './examples.yaml#/DefaultModeError'
+        EmptyPayload:
+          $ref: './examples.yaml#/EmptyPayload'
+        InvalidPriceType:
+          $ref: './examples.yaml#/InvalidPriceType_Update'
+        MissingDiscountedPrice:
+          $ref: './examples.yaml#/MissingDiscountedPrice_Update'
+        DiscountedPriceNotApplicable:
+          $ref: './examples.yaml#/DiscountedPriceNotApplicable_Update'
+        DiscountedPriceGTEOriginalPrice:
+          $ref: './examples.yaml#/DiscountedPriceGTEOriginalPrice_Update'
+
+RegisterReqBody:
+  description: Request payload to register a user
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/RegisterReqBody'
+      examples:
+        SuccessRegisterUser:
+          $ref: './examples.yaml#/SuccessRegisterUser'
+        UseReservedEmail:
+          $ref: './examples.yaml#/UseReservedEmail'
+        EmailAlreadyRegistered:
+          $ref: './examples.yaml#/EmailAlreadyRegistered'
+        MissingMandatoryProperty:
+          $ref: './examples.yaml#/MissingMandatoryProperty_User'
+        EmptyPayload:
+          $ref: './examples.yaml#/EmptyPayload'
+        InvalidEmailFormat:
+          $ref: './examples.yaml#/InvalidEmailFormat'
+        InvalidPhoneNumber:
+          $ref: './examples.yaml#/InvalidPhoneNumber'
+        InvalidGenderValue:
+          $ref: './examples.yaml#/InvalidGenderValue'
+        InvalidPasswordFormat:
+          $ref: './examples.yaml#/InvalidPasswordFormat'
+
+LoginReqBody:
+  description: Request payload to log in a user
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/LoginReqBody'
+      examples:
+        SuccessLogin:
+          $ref: './examples.yaml#/SuccessLogin'
+        InvalidCredentials:
+          $ref: './examples.yaml#/InvalidUserLoginCredentials'
+        UserNotFound:
+          $ref: './examples.yaml#/UserNotFound'
+
+UpdateUserReqBody:
+  description: Request payload to update a user
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UpdateUserReqBodyJSON'
+      examples:
+        SuccessUpdateUserWithoutImage:
+          $ref: './examples.yaml#/SuccessUpdateUserWithoutImage'
+        EmailAlreadyUsed:
+          $ref: './examples.yaml#/EmailAlreadyUsed'
+        EmptyPayload:
+          $ref: './examples.yaml#/EmptyPayload'
+    multipart/form-data:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UpdateUserReqBodyFormData'

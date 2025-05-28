@@ -1,0 +1,52 @@
+Register:
+  post:
+    summary: Register a new user
+    description: Create a new user account with the provided details.
+    security: []
+    tags:
+      - Authentication
+    requestBody:
+      $ref: '../components/requestBodies.yaml#/RegisterReqBody'
+    responses:
+      '201':
+        $ref: '../components/responses.yaml#/SuccessRegisterUser'
+      '400':
+        $ref: '../components/responses.yaml#/BadRequestRegisterUser'
+      '409':
+        $ref: '../components/responses.yaml#/UnprocessableContent_Register'
+
+VerifyEmail:
+  get:
+    summary: Verify user email
+    description: Verify the user's email address using a token sent via email.
+    security: []
+    tags:
+      - Authentication
+    parameters:
+      - $ref: '../components/parameters.yaml#/VerificationToken'
+    responses:
+      '200':
+        $ref: '../components/responses.yaml#/SuccessVerifyEmail'
+      '400':
+        $ref: '../components/responses.yaml#/BadRequestEmailVerification'
+      '409':
+        $ref: '../components/responses.yaml#/UserAlreadyVerified'
+
+Login:
+  post:
+    summary: User login
+    description: Authenticate a user and return an access token.
+    security: []
+    tags:
+      - Authentication
+    requestBody:
+      $ref: '../components/requestBodies.yaml#/LoginReqBody'
+    responses:
+      '200':
+        $ref: '../components/responses.yaml#/SuccessLogin'
+      '401':
+        $ref: '../components/responses.yaml#/InvalidLoginCredentials'
+      '403':
+        $ref: '../components/responses.yaml#/ForbiddenLogin'
+      '404':
+        $ref: '../components/responses.yaml#/UserNotFound'
