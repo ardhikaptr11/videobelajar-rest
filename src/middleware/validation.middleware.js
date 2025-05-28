@@ -18,22 +18,22 @@ const validateRegister = async (req, res, next) => {
 		const { full_name, email, gender, phone, password } = req.body;
 		const isPayloadEmpty = Object.keys(req.body).length === 0;
 
+		if (!full_name || !email || !gender || !phone || !password || isPayloadEmpty)
+			throwError("Please make sure all fields are filled in", 400);
+
 		const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
 		const phonePattern = /^8[1-9][0-9]{8,11}$/;
 
-		if (email.includes("admin")) throwError("Unable to use reserved email", 200);
+		if (email.includes("admin")) throwError("Unable to use reserved email", 400);
 
 		const isEmailAllowed = emailPattern.test(email);
-		if (!isEmailAllowed) throwError("Invalid email", 200);
+		if (!isEmailAllowed) throwError("Invalid email", 400);
 
 		const isPhoneAllowed = phonePattern.test(phone);
-		if (!isPhoneAllowed) throwError("Invalid phone number", 200);
+		if (!isPhoneAllowed) throwError("Invalid phone number", 400);
 
 		const isPasswordAllowed = passwordPattern.test(password);
-		if (!isPasswordAllowed) throwError("Password is too weak", 200);
-
-		if (!full_name || !email || !gender || !phone || !password || isPayloadEmpty)
-			throwError("Please make sure all fields are filled in", 400);
+		if (!isPasswordAllowed) throwError("Password is too weak", 400);
 
 		const isUserExist = await getUserByEmail(email);
 
@@ -68,20 +68,20 @@ const validateLogin = async (req, res, next) => {
 			(email === ADMIN_EMAIL && password !== ADMIN_PASSWORD) ||
 			(email !== ADMIN_EMAIL && password === ADMIN_PASSWORD)
 		)
-			throwError("Invalid admin credentials", 200);
+			throwError("Invalid admin credentials", 401);
 
 		if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) return next();
 
 		const isEmailValid = email && emailPattern.test(email);
 
 		const user = isEmailValid ? await getUserByEmail(email) : null;
-		if (!user) throwError("User not found", 200);
+		if (!user) throwError("User not found", 404);
 
 		const isPasswordMatch = user && (await bcrypt.compare(password, user.password));
 
-		if (!isEmailValid || !user || !isPasswordMatch) throwError("Invalid email or password", 200);
+		if (!isEmailValid || !user || !isPasswordMatch) throwError("Invalid email or password", 401);
 
-		if (!user.is_verified) throwError("Cannot login, please verify your account first", 200);
+		if (!user.is_verified) throwError("Cannot login, please verify your account first", 403);
 
 		next();
 	} catch (error) {
@@ -103,9 +103,9 @@ const validateVerification = async (req, res, next) => {
 
 		const user = await getUserByVerifToken(verificationToken);
 
-		if (!user) throwError("Token not recognized", 200);
+		if (!user) throwError("Token not recognized", 400);
 
-		if (user.is_verified) throwError("User already verified", 200);
+		if (user.is_verified) throwError("User already verified", 409);
 
 		req.params.id = user.user_id;
 
@@ -246,7 +246,7 @@ const validateUserDataBeforeUpdate = async (req, res, next) => {
 		if (Object.keys(dataToUpdate).length === 0) throwError("Cannot proceed with empty data", 400);
 
 		const user = await accessUserDataByRole(role, targetId);
-		if (!user) throwError("User not found", 200);
+		if (!user) throwError("User not found", 404);
 
 		const isEmailAlreadyUsed = dataToUpdate.email && (await getUserByEmail(dataToUpdate.email));
 		if (isEmailAlreadyUsed) throwError("Email is already in use", 409);
@@ -257,6 +257,7 @@ const validateUserDataBeforeUpdate = async (req, res, next) => {
 		}
 
 		dataToUpdate.avatar_url = uploadedImage.path;
+
 		req.dataToUpdate = dataToUpdate;
 
 		next();
