@@ -1,6 +1,5 @@
 const request = require("supertest");
 
-const { getUserById } = require("../models/users.model");
 const testConfig = require("../config/database").test;
 const knex = require("knex")(testConfig);
 
