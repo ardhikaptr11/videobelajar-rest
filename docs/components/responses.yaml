@@ -1,0 +1,355 @@
+GetAllCoursesResponse:
+  description: OK
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/GetAllCoursesResponse'
+      examples:
+        RetrievalSuccess:
+          $ref: './examples.yaml#/CoursesRetrievalSuccess'
+        NoCourses:
+          $ref: './examples.yaml#/NoCourses'
+
+GetOneCourseResponse:
+  description: OK
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/GetOneCourseResponse'
+      examples:
+        RetrievalSuccess:
+          $ref: './examples.yaml#/CourseRetrievalSuccess'
+        CourseNotFound:
+          $ref: './examples.yaml#/CourseNotFoundResponse'
+
+SuccessCreateCourse:
+  description: Created
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/SuccessCreateCourseResponse'
+      example:
+        $ref: './examples.yaml#/SuccessCreateCourseResponse'
+
+SuccessUpdateCourse:
+  description: OK
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/GetOneCourseResponse'
+      examples:
+        SuccessInStrictMode:
+          $ref: './examples.yaml#/SuccessUpdateCourseResponse_Strict'
+        SuccessInDefaultMode:
+          $ref: './examples.yaml#/SuccessUpdateCourseResponse_Default'
+        CourseNotFound:
+          $ref: './examples.yaml#/CourseNotFoundResponse'
+
+SuccessDeleteCourse:
+  description: OK
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/ValidRequest'
+      example:
+        $ref: './examples.yaml#/SuccessDeleteCourseResponse'
+
+CourseNotFound:
+  description: Not Found
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/ValidRequest'
+      example:
+        $ref: './examples.yaml#/CourseNotFoundResponse'
+
+BadRequestCreateCourse:
+  description: Bad Request
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      examples:
+        MissingMandatoryPropertyResponse:
+          $ref: './examples.yaml#/MissingMandatoryPropertyResponse'
+        EmptyPayloadResponse:
+          $ref: './examples.yaml#/EmptyPayloadResponse'
+        InvalidPriceTypeResponse:
+          $ref: './examples.yaml#/InvalidPriceTypeResponse'
+        MissingDiscountedPriceResponse:
+          $ref: './examples.yaml#/MissingDiscountedPriceResponse'
+        DiscountedPriceNotApplicableResponse:
+          $ref: './examples.yaml#/DiscountedPriceNotApplicableResponse'
+
+BadRequestUpdateCourse:
+  description: Bad Request
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      examples:
+        InvalidId:
+          $ref: './examples.yaml#/InvalidIdResponse_Update'
+        DefaultModeError:
+          $ref: './examples.yaml#/DefaultModeErrorResponse'
+        StrictModeError:
+          $ref: './examples.yaml#/StrictModeErrorResponse'
+        UnknownModeError:
+          $ref: './examples.yaml#/UnknownModeErrorResponse'
+        EmptyPayloadResponse:
+          $ref: './examples.yaml#/EmptyPayloadResponse'
+        InvalidPriceTypeResponse:
+          $ref: './examples.yaml#/InvalidPriceTypeResponse'
+        MissingDiscountedPriceResponse:
+          $ref: './examples.yaml#/MissingDiscountedPriceResponse'
+        DiscountedPriceNotApplicableResponse:
+          $ref: './examples.yaml#/DiscountedPriceNotApplicableResponse'
+
+BadRequestInvalidId_Course:
+  description: Bad Request
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      example:
+        $ref: './examples.yaml#/InvalidIdResponse_Course'
+
+Unauthorized:
+  description: Unauthorized
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      examples:
+        UnauthorizedResponse:
+          $ref: './examples.yaml#/UnauthorizedResponse'
+        InvalidSignatureResponse:
+          $ref: './examples.yaml#/InvalidSignatureResponse'
+
+ForbiddenRead:
+  description: Forbidden
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      example:
+        $ref: './examples.yaml#/ForbiddenReadResponse'
+
+ForbiddenPerformAction:
+  description: Forbidden
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      example:
+        $ref: './examples.yaml#/ForbiddenPerformActionResponse'
+
+CreateCourseConflict:
+  description: Conflict
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      example:
+        $ref: './examples.yaml#/CourseNameAlreadyTakenResponse'
+
+UpdateCourseConflict:
+  description: Conflict
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      examples:
+        StrictModeConflictResponse:
+          $ref: './examples.yaml#/StrictModeConflictResponse'
+        DefaultModeConflictResponse:
+          $ref: './examples.yaml#/DefaultModeConflictResponse'
+
+UnprocessableContent_Course:
+  description: Unprocessable Content
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      example:
+        $ref: './examples.yaml#/DiscountedPriceGTEOriginalPriceResponse'
+
+SuccessRegisterUser:
+  description: Created
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/SuccessRegisterUserResponse'
+      example:
+        $ref: './examples.yaml#/SuccessRegisterUserResponse'
+
+BadRequestRegisterUser:
+  description: Bad Request
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      examples:
+        UseReservedEmail:
+          $ref: './examples.yaml#/UseReservedEmailResponse'
+        MissingMandatoryPropertyResponse:
+          $ref: './examples.yaml#/MissingMandatoryPropertyResponse'
+        InvalidEmailFormatResponse:
+          $ref: './examples.yaml#/InvalidEmailFormatResponse'
+        InvalidPhoneNumberResponse:
+          $ref: './examples.yaml#/InvalidPhoneNumberResponse'
+        InvalidGenderValueResponse:
+          $ref: './examples.yaml#/InvalidGenderValueResponse'
+        InvalidPasswordFormatResponse:
+          $ref: './examples.yaml#/InvalidPasswordFormatResponse'
+
+UnprocessableContent_Register:
+  description: Unprocessable Content
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      example:
+        $ref: './examples.yaml#/EmailAlreadyRegisteredResponse'
+
+SuccessVerifyEmail:
+  description: OK
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/SuccessVerifyEmailResponse'
+      example:
+        $ref: './examples.yaml#/SuccessVerifyEmailResponse'
+
+BadRequestEmailVerification:
+  description: Bad Request
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      examples:
+        InvalidVerificationTokenResponse:
+          $ref: './examples.yaml#/InvalidVerificationTokenResponse'
+        MissingVerificationTokenResponse:
+          $ref: './examples.yaml#/MissingVerificationTokenResponse'
+
+UserAlreadyVerified:
+  description: Conflict
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      example:
+        $ref: './examples.yaml#/UserAlreadyVerifiedResponse'
+
+SuccessLogin:
+  description: OK
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/SuccessLoginResponse'
+      example:
+        $ref: './examples.yaml#/SuccessLoginResponse'
+
+InvalidLoginCredentials:
+  description: Unauthorized
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      examples:
+        InvalidUserLoginCredentialsResponse:
+          $ref: './examples.yaml#/InvalidUserLoginCredentialsResponse'
+        InvalidAdminLoginCredentialsResponse:
+          $ref: './examples.yaml#/InvalidAdminLoginCredentialsResponse'
+
+ForbiddenLogin:
+  description: Forbidden
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      example:
+        $ref: './examples.yaml#/ForbiddenLoginResponse'
+
+UserNotFound:
+  description: Not Found
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/ValidRequest'
+      example:
+        $ref: './examples.yaml#/UserNotFoundResponse'
+
+SuccessGetAllUsersResponse:
+  description: OK
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/GetAllUsersResponse'
+      example:
+        $ref: './examples.yaml#/GetAllUsersResponse'
+
+SuccessGetOneUserResponse:
+  description: OK
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/GetOneUserResponse'
+      example:
+        $ref: './examples.yaml#/GetOneUserResponse'
+
+SuccessUpdateUserResponse:
+  description: OK
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/SuccessUpdateUserResponse'
+      example:
+        $ref: './examples.yaml#/SuccessUpdateUserWithoutImageResponse'
+    multipart/form-data:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/SuccessUpdateUserResponse'
+      example:
+        $ref: './examples.yaml#/SuccessUpdateUserWithImageResponse'
+
+BadRequestUpdateUser:
+  description: Bad Request
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      examples:
+        EmptyPayloadResponse:
+          $ref: './examples.yaml#/EmptyPayloadResponse'
+        FileSizeTooBigResponse:
+          $ref: './examples.yaml#/FileSizeTooBigResponse'
+        UnexpectedFieldResponse:
+          $ref: './examples.yaml#/UnexpectedFieldResponse'
+
+UnprocessableContent_User:
+  description: Unprocessable Content
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      example:
+        $ref: './examples.yaml#/EmailAlreadyUsedResponse'
+
+UnsupportedMediaType:
+  description: Unsupported Media Type
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/UnsuccessfulResponse'
+      example:
+        $ref: './examples.yaml#/UnsupportedMediaTypeResponse'
+
+SuccessDeleteUserResponse:
+  description: OK
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/components/schemas/ValidRequest'
+      example:
+        $ref: './examples.yaml#/SuccessDeleteUserResponse'

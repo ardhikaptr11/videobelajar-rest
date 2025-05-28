@@ -1,0 +1,1461 @@
+openapi: 3.0.0
+servers:
+  - url: 'https://14040-videobelajar-rest.vercel.app'
+    description: Production server
+  - url: 'http://localhost:8765'
+    description: Local server
+tags:
+  - name: Authentication
+    description: User authentication endpoints
+  - name: Users
+    description: User related endpoints
+  - name: Courses
+    description: Course related endpoints
+info:
+  contact:
+    name: Ardhika Putra
+    url: 'https://github.com/ardhikaptr11/videobelajar-rest'
+    email: ardhikaptr11@gmail.com
+  license:
+    name: MIT
+    url: 'https://github.com/ardhikaputra11/videobelajar-rest/blob/main/LICENSE'
+  version: 2.0.0
+  title: Videobelajar REST API
+  description: An API Documentation for Videobelajar Webapps. Contact me if you have any issues or feedbacks.
+security:
+  - BearerAuth: []
+paths:
+  /api/v2/auth/register:
+    post:
+      summary: Register a new user
+      description: Create a new user account with the provided details.
+      security: []
+      tags:
+        - Authentication
+      requestBody:
+        description: Request payload to register a user
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/paths/~1api~1v2~1auth~1login/post/requestBody/content/application~1json/schema/allOf/0'
+                - type: object
+                  required:
+                    - full_name
+                    - email
+                    - gender
+                    - phone
+                    - password
+                  properties:
+                    full_name:
+                      type: string
+                    gender:
+                      type: string
+                    phone:
+                      type: string
+                      pattern: '^\d{9,13}$'
+                    password:
+                      type: string
+            examples:
+              SuccessRegisterUser:
+                summary: Complete Payload (success)
+                value:
+                  full_name: John Doe
+                  email: john@doe@example.com
+                  gender: male
+                  phone: '812345678901'
+                  password: John123!
+              UseReservedEmail:
+                summary: Use reserved email
+                description: Users are not allowed to register or use email addresses that contain the term 'admin'. This is to prevent unauthorized use of administrative or privileged email identifiers.
+                value:
+                  full_name: John Doe
+                  email: admin@john.com
+                  gender: male
+                  phone: '812345678902'
+                  password: John123!
+              EmailAlreadyRegistered:
+                summary: Email already registered
+                value:
+                  full_name: Rina Mayasari
+                  email: rina.mayasari@example.com
+                  gender: female
+                  phone: '812345678902'
+                  password: Rina123!
+              MissingMandatoryProperty:
+                summary: Mandatory property is missing
+                description: |-
+                  Mandatory properties that must be present include: 
+                    - `full_name`, 
+                    - `email`, 
+                    - `gender`, 
+                    - `phone`, 
+                    - `password`.
+                value:
+                  full_name: John Doe
+                  email: john@doe@example
+                  gender: male
+                  password: John123!
+              EmptyPayload:
+                $ref: '#/paths/~1api~1v2~1course/post/requestBody/content/application~1json/examples/EmptyPayload'
+              InvalidEmailFormat:
+                summary: Invalid email format
+                value:
+                  full_name: John Doe
+                  email: john@doe@example.com
+                  gender: male
+                  phone: '812345678901'
+                  password: John123!
+              InvalidPhoneNumber:
+                summary: Invalid phone number
+                description: 'Phone number must be a valid Indonesian mobile number, must not start with ''0'', containing only digits, and between 9 to 13 digits long. Do not include country codes or special characters.'
+                value:
+                  full_name: John Doe
+                  email: john.doe@example.com
+                  gender: male
+                  phone: '''0812345678901'''
+                  password: John123!
+              InvalidGenderValue:
+                summary: Invalid gender value
+                description: Gender must be `male` or `female`. Other values are not accepted
+                value:
+                  full_name: John Doe
+                  email: john.doe@example.com
+                  gender: other
+                  phone: '812345678901'
+                  password: John123!
+              InvalidPasswordFormat:
+                summary: Invalid password format
+                description: 'Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one digit, and one special character.'
+                value:
+                  full_name: John Doe
+                  email: john.doe@example.com
+                  gender: male
+                  phone: '812345678901'
+                  password: john123
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/paths/~1api~1v2~1users/get/responses/200/content/application~1json/schema/allOf/0'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/paths/~1api~1v2~1auth~1login/post/requestBody/content/application~1json/schema/allOf/0'
+                          - type: object
+                            properties:
+                              user_id:
+                                type: string
+                              full_name:
+                                type: string
+                              verif_token:
+                                type: string
+                              is_verified:
+                                type: boolean
+                              created_at:
+                                type: string
+              example:
+                code: 201
+                message: New user successfully created!
+                data:
+                  user_id: Generated UUID
+                  full_name: John Doe
+                  email: john.doe@example.com
+                  verif_token: Generated verification token
+                  is_verified: false
+                  created_at: '2025-05-27T14:38:50Z'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              examples:
+                UseReservedEmail:
+                  summary: Use reserved email
+                  value:
+                    code: 400
+                    message: Unable to use reserved email
+                    data: null
+                MissingMandatoryPropertyResponse:
+                  $ref: '#/paths/~1api~1v2~1course/post/responses/400/content/application~1json/examples/MissingMandatoryPropertyResponse'
+                InvalidEmailFormatResponse:
+                  summary: Invalid email format
+                  value:
+                    code: 400
+                    message: Invalid email
+                    data: null
+                InvalidPhoneNumberResponse:
+                  summary: Invalid phone number
+                  value:
+                    code: 400
+                    message: Invalid phone number
+                    data: null
+                InvalidGenderValueResponse:
+                  summary: Invalid gender value
+                  value:
+                    code: 400
+                    message: Unacceptable gender value
+                    data: null
+                InvalidPasswordFormatResponse:
+                  summary: Invalid password format
+                  value:
+                    code: 400
+                    message: Password is too weak
+                    data: null
+        '409':
+          description: Unprocessable Content
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              example:
+                code: 409
+                message: Email already registered
+                data: null
+  /api/v2/auth/verify-email:
+    get:
+      summary: Verify user email
+      description: Verify the user's email address using a token sent via email.
+      security: []
+      tags:
+        - Authentication
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The token sent to the user's email for verification.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/paths/~1api~1v2~1users/get/responses/200/content/application~1json/schema/allOf/0'
+                  - $ref: '#/paths/~1api~1v2~1auth~1login/post/requestBody/content/application~1json/schema/allOf/0'
+                  - type: object
+                    properties:
+                      user_id:
+                        type: string
+                      is_verified:
+                        type: boolean
+                      verified_at:
+                        type: string
+              example:
+                code: 200
+                message: Email successfully verified!
+                data:
+                  user_id: Generated UUID
+                  email: john.doe@example.com
+                  is_verified: false
+                  verified_at: '28 May 2025 at 00:30:18 GMT+7'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              examples:
+                InvalidVerificationTokenResponse:
+                  summary: Invalid verification token
+                  description: 'The verification token provided is either invalid, expired, or does not match any user.'
+                  value:
+                    code: 400
+                    message: Token not recognized
+                    data: null
+                MissingVerificationTokenResponse:
+                  summary: Missing verification token
+                  description: The verification token is required to verify the user's email address.
+                  value:
+                    code: 400
+                    message: Verification token is required
+                    data: null
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              example:
+                code: 409
+                message: User already verified
+                data: null
+  /api/v2/auth/login:
+    post:
+      summary: User login
+      description: Authenticate a user and return an access token.
+      security: []
+      tags:
+        - Authentication
+      requestBody:
+        description: Request payload to log in a user
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - type: object
+                  properties:
+                    email:
+                      type: string
+                - type: object
+                  required:
+                    - email
+                    - password
+                  properties:
+                    password:
+                      type: string
+            examples:
+              SuccessLogin:
+                summary: Complete Payload (success)
+                value:
+                  email: john.doe@example.com
+                  password: John123!
+              InvalidCredentials:
+                summary: Invalid user login credentials
+                value:
+                  email: john.doe@example.com
+                  password: WrongPassword123!
+              UserNotFound:
+                summary: User not found
+                description: The user with the provided email does not exist in the system. Please check the email and try again.
+                value:
+                  email: jalu.herlambang@example.com
+                  password: Jalu123!
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/paths/~1api~1v2~1users/get/responses/200/content/application~1json/schema/allOf/0'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          token:
+                            type: string
+                          lastLogin:
+                            type: string
+              example:
+                code: 200
+                message: Login successful!
+                data:
+                  token: Generated JWT token
+                  lastLogin: '2025-05-27T18:04:37Z'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              examples:
+                InvalidUserLoginCredentialsResponse:
+                  summary: Invalid user login credentials
+                  description: The email or password provided is incorrect or missing. Please check your credentials and try again.
+                  value:
+                    code: 401
+                    message: Invalid email or password
+                    data: null
+                InvalidAdminLoginCredentialsResponse:
+                  summary: Invalid admin login credentials
+                  description: This is for admin only. The email or password provided is incorrect or missing.
+                  value:
+                    code: 401
+                    message: Invalid admin credentials
+                    data: null
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              example:
+                code: 403
+                message: 'Cannot login, please verify your account first'
+                data: null
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/paths/~1api~1v2~1users/get/responses/200/content/application~1json/schema/allOf/0'
+                  - type: object
+                    properties:
+                      data:
+                        nullable: true
+                        type: object
+              example:
+                code: 404
+                message: User not found
+                data: null
+  /api/v2/users:
+    get:
+      summary: Get all users
+      description: Retrieve a list of all available users in the database.
+      tags:
+        - Users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - title: ResponseHead
+                    type: object
+                    properties:
+                      code:
+                        type: integer
+                      message:
+                        type: string
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: '#/paths/~1api~1v2~1auth~1login/post/requestBody/content/application~1json/schema/allOf/0'
+                            - type: object
+                              properties:
+                                user_id:
+                                  type: string
+                                full_name:
+                                  type: string
+                                gender:
+                                  type: string
+                                phone:
+                                  type: string
+              example:
+                code: 200
+                message: Success get all users!
+                data:
+                  - user_id: Generated UUID
+                    full_name: Ardhika Putra
+                    email: ardhikaptr11@example.com
+                    gender: male
+                    phone: '''082234441918'''
+                  - user_id: Generated UUID
+                    full_name: Bahuraksa Purnawarman
+                    email: bahuraksa.purnawarman91@example.com
+                    gender: male
+                    phone: '''08251592082'''
+                  - ...
+                  - user_id: Generated UUID
+                    full_name: Virman Iswahyudi
+                    email: virman_iswahyudi@example.com
+                    gender: male
+                    phone: '''088516841256'''
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                title: UnsuccessfulResponse
+                allOf:
+                  - $ref: '#/paths/~1api~1v2~1users/get/responses/200/content/application~1json/schema/allOf/0'
+                  - type: object
+                    properties:
+                      data:
+                        nullable: true
+                        type: object
+              examples:
+                UnauthorizedResponse:
+                  summary: Unauthorized
+                  description: The request requires user authentication. The user must be logged in to get access.
+                  value:
+                    code: 401
+                    message: Authentication failed. Invalid or missing token
+                    data: null
+                InvalidSignatureResponse:
+                  summary: Invalid signature
+                  description: The request signature is invalid. Ensure the request is signed correctly and try again.
+                  value:
+                    code: 401
+                    message: invalid signature
+                    data: null
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              example:
+                code: 403
+                message: You are not allowed to access this resource
+                data: null
+  '/api/v2/user/{user_id}':
+    get:
+      summary: Get user by ID
+      description: Retrieve a specific user by their unique ID.
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: |
+            - A unique identifier for the user, typically a UUID. This parameter is used to identify the user in various operations such as fetching user details, updating user information, or deleting a user account.
+            - Only admins can run this endpoint with the given example UUID. If you are not an admin, use your own user_id.
+          schema:
+            type: string
+          example: 621ec4bf-f067-490c-bc4e-cd93e2d73e49
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/paths/~1api~1v2~1users/get/responses/200/content/application~1json/schema/allOf/0'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/paths/~1api~1v2~1users/get/responses/200/content/application~1json/schema/allOf/1/properties/data/items'
+                          - type: object
+                            properties:
+                              avatar_url:
+                                type: string
+                              verif_token:
+                                type: string
+                              is_verified:
+                                type: boolean
+              example:
+                code: 200
+                message: Success get one user!
+                data:
+                  user_id: 621ec4bf-f067-490c-bc4e-cd93e2d73e49
+                  full_name: John Doe
+                  email: ...
+                  gender: male
+                  phone: ...
+                  avatar_url: 'https://api.dicebear.com/9.x/avataaars/png/seed=...'
+                  verif_token: ...
+                  is_verified: false
+        '401':
+          $ref: '#/paths/~1api~1v2~1users/get/responses/401'
+        '403':
+          $ref: '#/paths/~1api~1v2~1users/get/responses/403'
+        '404':
+          $ref: '#/paths/~1api~1v2~1auth~1login/post/responses/404'
+    patch:
+      summary: Update user by ID
+      description: Update the details of a specific user by their unique ID.
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/paths/~1api~1v2~1user~1%7Buser_id%7D/get/parameters/0'
+      requestBody:
+        description: Request payload to update a user
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/paths/~1api~1v2~1auth~1login/post/requestBody/content/application~1json/schema/allOf/0'
+                - type: object
+                  properties:
+                    full_name:
+                      type: string
+                    phone:
+                      type: string
+                      pattern: '^\d{9,13}$'
+            examples:
+              SuccessUpdateUserWithoutImage:
+                summary: Valid payload (success)
+                description: 'This payload is used to update user profile information. It can include fields such as `full_name`, `email`, and `phone`, and `avatar_url`. All fields are optional, but at least one must be provided to update the profile.'
+                value:
+                  full_name: John Peter Doe
+                  email: jp.doe@example.com
+              EmailAlreadyUsed:
+                summary: Email already used
+                description: The email address provided is already in use by another user. Please use a different email address.
+                value:
+                  email: john.doe@example.com
+              EmptyPayload:
+                $ref: '#/paths/~1api~1v2~1course/post/requestBody/content/application~1json/examples/EmptyPayload'
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                full_name:
+                  type: string
+                  example: John Peter Doe
+                email:
+                  type: string
+                  format: email
+                  example: jp.doe@example.com
+                avatar_img:
+                  type: string
+                  format: binary
+                  description: 'Upload image file (JPG, JPEG, PNG)'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/paths/~1api~1v2~1users/get/responses/200/content/application~1json/schema/allOf/0'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                          user_id:
+                            type: string
+                          full_name:
+                            type: string
+                          email:
+                            type: string
+                          phone:
+                            type: string
+                          is_verified:
+                            type: boolean
+                          avatar_url:
+                            type: string
+              example:
+                code: 200
+                message: Profile updated successfully!
+                data:
+                  success: true
+                  user_id: 621ec4bf-f067-490c-bc4e-cd93e2d73e49
+                  full_name: John Peter Doe
+                  email: jp.doe@example.com
+                  phone: ...
+                  is_verified: false
+                  avatar_url: 'https://api.dicebear.com/9.x/avataaars/png/seed=...'
+            multipart/form-data:
+              schema:
+                $ref: '#/paths/~1api~1v2~1user~1%7Buser_id%7D/patch/responses/200/content/application~1json/schema'
+              example:
+                code: 200
+                message: Profile updated successfully!
+                data:
+                  success: true
+                  user_id: 621ec4bf-f067-490c-bc4e-cd93e2d73e49
+                  full_name: John Peter Doe
+                  email: jp.doe@example.com
+                  phone: ...
+                  is_verified: false
+                  avatar_url: 'https://res.cloudinary.com/dryfiuvhw/image/upload/v1747384806/user_avatars/user-621ec4bf-avatar.jpg'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              examples:
+                EmptyPayloadResponse:
+                  $ref: '#/paths/~1api~1v2~1course/post/responses/400/content/application~1json/examples/EmptyPayloadResponse'
+                FileSizeTooBigResponse:
+                  summary: File size exceeds limit
+                  description: The uploaded file exceeds the maximum allowed size of 5 MB
+                  value:
+                    code: 400
+                    message: Uploaded file size exceeds 5 MB limit
+                    data: null
+                UnexpectedFieldResponse:
+                  summary: Invalid or missing field
+                  description: The request contains an unexpected field that is not defined in the API specification.
+                  value:
+                    code: 400
+                    message: Unexpected or missing field
+                    data: null
+        '401':
+          $ref: '#/paths/~1api~1v2~1users/get/responses/401'
+        '403':
+          $ref: '#/paths/~1api~1v2~1course/post/responses/403'
+        '404':
+          $ref: '#/paths/~1api~1v2~1auth~1login/post/responses/404'
+        '409':
+          description: Unprocessable Content
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              example:
+                code: 409
+                message: Email is already in use
+                data: null
+        '415':
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              example:
+                code: 415
+                message: 'Unsupported image format. Please upload JPG, JPEG, or PNG files only.'
+                data: null
+    delete:
+      summary: Delete user by ID
+      description: Delete a specific user by their unique ID.
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/paths/~1api~1v2~1user~1%7Buser_id%7D/get/parameters/0'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1auth~1login/post/responses/404/content/application~1json/schema'
+              example:
+                code: 200
+                message: User successfully deleted!
+                data: null
+        '401':
+          $ref: '#/paths/~1api~1v2~1users/get/responses/401'
+        '403':
+          $ref: '#/paths/~1api~1v2~1course/post/responses/403'
+        '404':
+          $ref: '#/paths/~1api~1v2~1auth~1login/post/responses/404'
+  /api/v2/courses:
+    get:
+      tags:
+        - Courses
+      summary: Get All Courses
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: GetAllCoursesResponse
+                allOf:
+                  - $ref: '#/paths/~1api~1v2~1users/get/responses/200/content/application~1json/schema/allOf/0'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/paths/~1api~1v2~1course~1%7Bcourse_id%7D/get/responses/200/content/application~1json/schema/allOf/1/properties/data'
+              examples:
+                RetrievalSuccess:
+                  summary: All courses successfully retrieved
+                  value:
+                    code: 200
+                    message: Courses successfully retrieved!
+                    data:
+                      - course_id: 1
+                        name: UI/UX Design
+                        tagline: Gapai Karier Impianmu sebagai Seorang UI/UX Designer & Product Manager
+                        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce laoreet, est ut facilisis gravida, sapien nulla eleifend justo, at viverra odio dolor id est. Aliquam tincidunt mauris ut eleifend aliquam. Ut vel ligula id turpis suscipit dignissim. Phasellus posuere, enim sed elementum ultricies, dolor nunc porttitor purus, nec dignissim turpis elit a est. Etiam vitae dolor vel tortor egestas efficitur. Nullam imperdiet aliquet elit vel posuere. Sed nec laoreet nunc, at malesuada est.'
+                        slug: ui-ux-design
+                        price: 599
+                        is_discount: false
+                        discounted_price: 0
+                        thumbnail_img_url: 'https://picsum.photos/id/1/420/230'
+                        total_students_enrolled: 0
+                        categories:
+                          - Design & Multimedia
+                          - Internet Technologies
+                          - Web Development
+                        modules:
+                          total: 10
+                          list:
+                            - module_id: 1
+                              title: Introduction to UI/UX Design
+                            - module_id: 2
+                              title: Design Thinking
+                            - module_id: 3
+                              title: User Research
+                            - ... more modules
+                NoCourses:
+                  summary: No courses available
+                  value:
+                    code: 200
+                    message: No data recorded yet
+                    data: null
+        '401':
+          $ref: '#/paths/~1api~1v2~1users/get/responses/401'
+  /api/v2/course:
+    post:
+      tags:
+        - Courses
+      summary: Create a New Course
+      requestBody:
+        description: Request payload to create a course
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - type: object
+                  properties:
+                    course_id:
+                      type: integer
+                    name:
+                      type: string
+                    categories:
+                      type: array
+                      items:
+                        type: string
+                    total_students_enrolled:
+                      type: integer
+                    created_at:
+                      type: string
+                - type: object
+                  required:
+                    - name
+                    - tagline
+                    - description
+                    - price
+                    - thumbnail_img_url
+                    - categories
+                    - modules
+                  properties:
+                    tagline:
+                      type: string
+                    description:
+                      type: string
+                    price:
+                      type: integer
+                    thumbnail_img_url:
+                      type: string
+                    categories:
+                      type: array
+                      items:
+                        type: string
+                    modules:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+            examples:
+              SuccessCreateCourse:
+                summary: Complete Payload (success)
+                value:
+                  name: Example Course
+                  tagline: Example Tagline
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur in luctus ligula'
+                  price: 599
+                  thumbnail_img_url: 'https://example.com/image.jpeg'
+                  categories:
+                    - Category 1
+                    - Category 2
+                    - Category 3
+                  modules:
+                    - title: Module 1
+                    - title: Module 2
+                    - title: Module 3
+              MissingMandatoryProperty:
+                summary: Mandatory property is missing
+                description: |-
+                  Mandatory properties that must be present include: 
+                    - `name`, 
+                    - `tagline`, 
+                    - `description`, 
+                    - `price`, 
+                    - `thumbnail_img_url`, 
+                    - `categories`,
+                    - `modules`.
+                value:
+                  name: Example Course
+                  tagline: Example Tagline
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur in luctus ligula'
+                  thumbnail_img_url: 'https://example.com/image.jpeg'
+                  categories:
+                    - Category 1
+                    - Category 2
+                    - Category 3
+                  modules:
+                    - title: Module 1
+                    - title: Module 2
+                    - title: Module 3
+              EmptyPayload:
+                summary: Payload is empty
+                value: {}
+              InvalidPriceType:
+                summary: Price using invalid data type
+                description: |-
+                  - Price means regular and discounted price 
+                  - Other data types that are not accepted include `-100` (negative integer) or `100.5` (decimal)
+                value:
+                  name: Example Course
+                  tagline: Example Tagline
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur in luctus ligula'
+                  price: '''599'''
+                  thumbnail_img_url: 'https://example.com/image.jpeg'
+                  categories:
+                    - Category 1
+                    - Category 2
+                    - Category 3
+                  modules:
+                    - title: Module 1
+                    - title: Module 2
+                    - title: Module 3
+              MissingDiscountedPrice:
+                summary: Discounted price is not specified when the course status is on discount
+                value:
+                  name: Example Course
+                  tagline: Example Tagline
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur in luctus ligula'
+                  price: 599
+                  is_discount: true
+                  thumbnail_img_url: 'https://example.com/image.jpeg'
+                  categories:
+                    - Category 1
+                    - Category 2
+                    - Category 3
+                  modules:
+                    - title: Module 1
+                    - title: Module 2
+                    - title: Module 3
+              DiscountedPriceNotApplicable:
+                summary: Discounted price is given but course is not on discount
+                description: 'By default `is_discount` is set to false when first created, so it does not need to be defined'
+                value:
+                  name: Example Course
+                  tagline: Example Tagline
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur in luctus ligula'
+                  price: 599
+                  discounted_price: 399
+                  thumbnail_img_url: 'https://example.com/image.jpeg'
+                  categories:
+                    - Category 1
+                    - Category 2
+                    - Category 3
+                  modules:
+                    - title: Module 1
+                    - title: Module 2
+                    - title: Module 3
+              DiscountedPriceGTEOriginalPrice:
+                summary: Discounted price is greater than or equal to regular price
+                value:
+                  name: Example Course
+                  tagline: Example Tagline
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur in luctus ligula'
+                  price: 599
+                  is_discount: true
+                  discounted_price: 799
+                  thumbnail_img_url: 'https://example.com/image.jpeg'
+                  categories:
+                    - Category 1
+                    - Category 2
+                    - Category 3
+                  modules:
+                    - title: Module 1
+                    - title: Module 2
+                    - title: Module 3
+              CourseNameAlreadyTaken:
+                summary: Course name already taken
+                description: 'Course name must be unique. Let say `UI/UX Design` is already exists. If that the case, you cannot create a new course with the same name'
+                value:
+                  name: UI/UX Design
+                  tagline: Example Tagline
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur in luctus ligula'
+                  price: 599
+                  is_discount: true
+                  discounted_price: 299
+                  thumbnail_img_url: 'https://example.com/image.jpeg'
+                  categories:
+                    - Category 1
+                    - Category 2
+                    - Category 3
+                  modules:
+                    - title: Module 1
+                    - title: Module 2
+                    - title: Module 3
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/paths/~1api~1v2~1users/get/responses/200/content/application~1json/schema/allOf/0'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/paths/~1api~1v2~1course/post/requestBody/content/application~1json/schema/allOf/0'
+              example:
+                code: 201
+                message: Course created successfully!
+                data:
+                  course_id: 1
+                  name: Course 1
+                  categories:
+                    - Category 1
+                    - Category 2
+                    - Category 3
+                  total_students_enrolled: 0
+                  created_at: '2025-05-04T10:33:43.000Z'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              examples:
+                MissingMandatoryPropertyResponse:
+                  summary: Missing mandatory property
+                  value:
+                    code: 400
+                    message: Please make sure all fields are filled in
+                    data: null
+                EmptyPayloadResponse:
+                  summary: Empty payload
+                  value:
+                    code: 400
+                    message: Cannot proceed with empty data
+                    data: null
+                InvalidPriceTypeResponse:
+                  summary: Invalid type of price
+                  value:
+                    code: 400
+                    message: Invalid price value
+                    data: null
+                MissingDiscountedPriceResponse:
+                  summary: Discounted price is missing
+                  value:
+                    code: 400
+                    message: Please specify the discounted price
+                    data: null
+                DiscountedPriceNotApplicableResponse:
+                  summary: Discounted price is not applicable
+                  value:
+                    code: 400
+                    message: Discounted price is not applicable
+                    data: null
+        '401':
+          $ref: '#/paths/~1api~1v2~1users/get/responses/401'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              example:
+                code: 403
+                message: You are not allowed to perform this action
+                data: null
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              example:
+                code: 409
+                message: Course name already taken
+                data: null
+        '422':
+          description: Unprocessable Content
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              example:
+                code: 422
+                message: Discounted price cannot be equal or exceed the original price
+                data: null
+  '/api/v2/course/{course_id}':
+    get:
+      tags:
+        - Courses
+      summary: Get Course by ID
+      parameters:
+        - name: course_id
+          required: true
+          description: A unique identifier for the course
+          in: path
+          schema:
+            oneOf:
+              - type: number
+              - type: string
+              - type: integer
+            minimum: 1
+            maximum: 9999
+          examples:
+            validId:
+              summary: Valid Id
+              value: 10
+            invalidId:
+              summary: Invalid Id
+              value: -1
+            nonIntegerId:
+              summary: Non-integer Id
+              value: abc
+      description: Get one specific course matched the id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: GetOneCourseResponse
+                allOf:
+                  - $ref: '#/paths/~1api~1v2~1users/get/responses/200/content/application~1json/schema/allOf/0'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/paths/~1api~1v2~1course/post/requestBody/content/application~1json/schema/allOf/0'
+                          - type: object
+                            properties:
+                              slug:
+                                type: string
+                              discounted_price:
+                                type: integer
+                              is_discount:
+                                type: boolean
+                                default: false
+                              thumbnail_img_url:
+                                type: string
+              examples:
+                RetrievalSuccess:
+                  summary: One course successfully retrieved
+                  value:
+                    code: 200
+                    message: Course successfully retrieved!
+                    data:
+                      course_id: 10
+                      name: Example Course
+                      tagline: Example Tagline
+                      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur in luctus ligula'
+                      slug: example-course
+                      price: 599
+                      is_discount: false
+                      discounted_price: 0
+                      thumbnail_img_url: 'https://example.com/image.jpeg'
+                      total_students_enrolled: 0
+                      categories:
+                        - Category 1
+                        - Category 2
+                        - Category 3
+                      modules:
+                        total: 3
+                        list:
+                          - module_id: 1
+                            title: Module 1
+                          - module_id: 2
+                            title: Module 2
+                          - module_id: 3
+                            title: Module 3
+                CourseNotFound:
+                  $ref: '#/paths/~1api~1v2~1course~1%7Bcourse_id%7D/get/responses/404/content/application~1json/example'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              example:
+                code: 400
+                message: Course ID must be a positive integer number
+                data: null
+        '401':
+          $ref: '#/paths/~1api~1v2~1users/get/responses/401'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1auth~1login/post/responses/404/content/application~1json/schema'
+              example:
+                code: 404
+                message: Course not found
+                data: null
+    patch:
+      tags:
+        - Courses
+      summary: Update Course by ID
+      parameters:
+        - $ref: '#/paths/~1api~1v2~1course~1%7Bcourse_id%7D/get/parameters/0'
+        - name: mode
+          in: query
+          schema:
+            type: string
+            enum:
+              - default
+              - strict
+            default: default
+          description: |-
+            Mode for updating categories in course (if defined in the payload)
+            - `default`: overwrite old categories with new ones 
+            - `strict`: add new ones without overwriting them
+      description: Update one specific course matched the id
+      requestBody:
+        description: Request payload to update a course
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/paths/~1api~1v2~1course/post/requestBody/content/application~1json/schema'
+            examples:
+              SuccessUpdateCourse:
+                summary: Complete payload (success)
+                value:
+                  name: New Example Course
+                  tagline: New Tagline for New Example Course
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate.'
+                  price: 799
+                  is_discount: true
+                  discounted_price: 599
+                  thumbnail_img_url: 'https://example.com/new-image.jpeg'
+                  categories:
+                    - Category 4
+                    - Category 5
+              StrictModeSuccess:
+                summary: Allowed in strict mode (success)
+                description: 'In case `Category 4` and `Category 5` already assigned and are accidentally written back in the `categories`, then only `Category 6` will be added'
+                value:
+                  name: New Example Course
+                  tagline: New Tagline for New Example Course
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate.'
+                  price: 799
+                  is_discount: true
+                  discounted_price: 599
+                  thumbnail_img_url: 'https://example.com/new-image.jpeg'
+                  categories:
+                    - Category 4
+                    - Category 5
+                    - Category 6
+              StrictModeError:
+                summary: Causing error in both mode (categories were empty)
+                value:
+                  name: New Example Course
+                  tagline: New Tagline for New Example Course
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate.'
+                  price: 799
+                  is_discount: true
+                  discounted_price: 599
+                  thumbnail_img_url: 'https://example.com/new-image.jpeg'
+                  categories: []
+              DefaultModeError:
+                summary: Causing error in default mode (categories were excluded)
+                value:
+                  name: New Example Course
+                  tagline: New Tagline for New Example Course
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate.'
+                  price: 799
+                  is_discount: true
+                  discounted_price: 599
+                  thumbnail_img_url: 'https://example.com/new-image.jpeg'
+              EmptyPayload:
+                $ref: '#/paths/~1api~1v2~1course/post/requestBody/content/application~1json/examples/EmptyPayload'
+              InvalidPriceType:
+                summary: Price using invalid data type
+                description: |-
+                  - Price means regular and discounted price 
+                  - Other data types that are not accepted include `-100` (negative integer) or `100.5` (decimal)
+                value:
+                  name: New Example Course
+                  tagline: New Tagline for New Example Course
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate.'
+                  price: '''799'''
+                  is_discount: true
+                  discounted_price: '''599'''
+                  thumbnail_img_url: 'https://example.com/new-image.jpeg'
+                  categories:
+                    - Category 4
+                    - Category 5
+              MissingDiscountedPrice:
+                summary: Discounted price is not specified when the course status is on discount
+                value:
+                  name: New Example Course
+                  tagline: New Tagline for New Example Course
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate.'
+                  price: 799
+                  is_discount: true
+                  thumbnail_img_url: 'https://example.com/new-image.jpeg'
+                  categories:
+                    - Category 4
+                    - Category 5
+              DiscountedPriceNotApplicable:
+                summary: Discounted price is given but course is not on discount
+                description: 'By default `is_discount` is set to false when first created, so it does not need to be defined'
+                value:
+                  name: New Example Course
+                  tagline: New Tagline for New Example Course
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate.'
+                  price: 799
+                  discounted_price: 599
+                  thumbnail_img_url: 'https://example.com/new-image.jpeg'
+                  categories:
+                    - Category 4
+                    - Category 5
+              DiscountedPriceGTEOriginalPrice:
+                summary: Discounted price is greater than or equal to regular price
+                value:
+                  name: New Example Course
+                  tagline: New Tagline for New Example Course
+                  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate.'
+                  price: 599
+                  is_discount: true
+                  discounted_price: 799
+                  thumbnail_img_url: 'https://example.com/new-image.jpeg'
+                  categories:
+                    - Category 4
+                    - Category 5
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1course~1%7Bcourse_id%7D/get/responses/200/content/application~1json/schema'
+              examples:
+                SuccessInStrictMode:
+                  summary: Success (strict mode)
+                  value:
+                    code: 200
+                    message: Course updated succesfully!
+                    data:
+                      course_id: 10
+                      name: New Example Course
+                      slug: new-example-course
+                      tagline: New Tagline for New Example Course
+                      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate.'
+                      price: 799
+                      is_discount: true
+                      discounted_price: 599
+                      thumbnail_img_url: 'https://example.com/new-image.jpeg'
+                      categories:
+                        - Category 1
+                        - Category 2
+                        - Category 3
+                        - Category 4
+                        - Category 5
+                SuccessInDefaultMode:
+                  summary: Success (default mode)
+                  value:
+                    code: 200
+                    message: Course updated succesfully!
+                    data:
+                      course_id: 10
+                      name: New Example Course
+                      slug: new-example-course
+                      tagline: New Tagline for New Example Course
+                      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam dui turpis, porttitor sagittis quam non, pellentesque luctus velit. Fusce vulputate.'
+                      price: 799
+                      is_discount: true
+                      discounted_price: 599
+                      thumbnail_img_url: 'https://example.com/new-image.jpeg'
+                      categories:
+                        - Category 4
+                        - Category 5
+                CourseNotFound:
+                  $ref: '#/paths/~1api~1v2~1course~1%7Bcourse_id%7D/get/responses/404/content/application~1json/example'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              examples:
+                InvalidId:
+                  summary: Invalid Course ID
+                  description: ID must be a positive integer
+                  value:
+                    code: 400
+                    message: Course ID must be a positive integer number
+                    data: null
+                DefaultModeError:
+                  summary: Categories were excluded or empty (default mode)
+                  description: Occurs when `categories` is not defined in the payload or is defined and it is empty
+                  value:
+                    code: 400
+                    message: Failed to overwrite. No category provided
+                    data: null
+                StrictModeError:
+                  summary: Categories were empty (strict mode)
+                  description: Occurs when `categories` is defined in the payload and it is empty
+                  value:
+                    code: 400
+                    message: Failed to append. No category provided
+                    data: null
+                UnknownModeError:
+                  summary: Unknown mode
+                  description: Occurs when using modes other than `default` or `strict`
+                  value:
+                    code: 400
+                    message: Unknown mode. Mode must be either 'default' or 'strict'
+                EmptyPayloadResponse:
+                  $ref: '#/paths/~1api~1v2~1course/post/responses/400/content/application~1json/examples/EmptyPayloadResponse'
+                InvalidPriceTypeResponse:
+                  $ref: '#/paths/~1api~1v2~1course/post/responses/400/content/application~1json/examples/InvalidPriceTypeResponse'
+                MissingDiscountedPriceResponse:
+                  $ref: '#/paths/~1api~1v2~1course/post/responses/400/content/application~1json/examples/MissingDiscountedPriceResponse'
+                DiscountedPriceNotApplicableResponse:
+                  $ref: '#/paths/~1api~1v2~1course/post/responses/400/content/application~1json/examples/DiscountedPriceNotApplicableResponse'
+        '401':
+          $ref: '#/paths/~1api~1v2~1users/get/responses/401'
+        '403':
+          $ref: '#/paths/~1api~1v2~1course/post/responses/403'
+        '404':
+          $ref: '#/paths/~1api~1v2~1course~1%7Bcourse_id%7D/get/responses/404'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1users/get/responses/401/content/application~1json/schema'
+              examples:
+                StrictModeConflictResponse:
+                  summary: Failed to update (strict mode)
+                  value:
+                    code: 409
+                    message: Course already has the intended category
+                    data: null
+                DefaultModeConflictResponse:
+                  summary: Failed to update (default mode)
+                  value:
+                    code: 409
+                    message: Cannot override predefined categories with the exact same name
+                    data: null
+        '422':
+          $ref: '#/paths/~1api~1v2~1course/post/responses/422'
+    delete:
+      tags:
+        - Courses
+      summary: Delete Course by ID
+      parameters:
+        - $ref: '#/paths/~1api~1v2~1course~1%7Bcourse_id%7D/get/parameters/0'
+      description: Delete one specific course matched the id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/paths/~1api~1v2~1auth~1login/post/responses/404/content/application~1json/schema'
+              example:
+                summary: Deletion success
+                value:
+                  code: 200
+                  message: Course successfully deleted!
+                  data: null
+        '400':
+          $ref: '#/paths/~1api~1v2~1course~1%7Bcourse_id%7D/get/responses/400'
+        '401':
+          $ref: '#/paths/~1api~1v2~1users/get/responses/401'
+        '403':
+          $ref: '#/paths/~1api~1v2~1course/post/responses/403'
+        '404':
+          $ref: '#/paths/~1api~1v2~1course~1%7Bcourse_id%7D/get/responses/404'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -1,0 +1,53 @@
+# openapi.yaml
+openapi: 3.0.0
+servers:
+- url: 'https://14040-videobelajar-rest.vercel.app'
+  description: Production server
+- url: 'http://localhost:8765'
+  description: Local server
+tags:
+- name: Authentication
+  description: User authentication endpoints
+- name: Users
+  description: User related endpoints
+- name: Courses
+  description: Course related endpoints
+info:
+  contact:
+    name: Ardhika Putra
+    url: 'https://github.com/ardhikaptr11/videobelajar-rest'
+    email: ardhikaptr11@gmail.com
+  license:
+    name: MIT
+    url: 'https://github.com/ardhikaputra11/videobelajar-rest/blob/main/LICENSE'
+  version: 2.0.0
+  title: Videobelajar REST API
+  description: >-
+    An API Documentation for Videobelajar Webapps. Contact me if you have any issues or feedbacks.
+security:
+- BearerAuth: []
+
+paths:
+  /api/v2/auth/register:
+    $ref: './paths/auth.yaml#/Register'
+  /api/v2/auth/verify-email:
+    $ref: './paths/auth.yaml#/VerifyEmail'
+  /api/v2/auth/login:
+    $ref: './paths/auth.yaml#/Login'
+  /api/v2/users:
+    $ref: './paths/users.yaml#/GetAllUsers'
+  /api/v2/user/{user_id}:
+    $ref: './paths/users.yaml#/UserById'
+  /api/v2/courses:
+    $ref: './paths/courses.yaml#/GetAllCourses'
+  /api/v2/course:
+    $ref: './paths/courses.yaml#/CreateCourse'
+  /api/v2/course/{course_id}:
+    $ref: './paths/courses.yaml#/CourseById'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
