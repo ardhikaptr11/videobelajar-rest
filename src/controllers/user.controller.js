@@ -15,7 +15,7 @@ const handleGetUsers = async (req, res, next) => {
 
 		return res.status(200).json({
 			code: 200,
-			message: "Success Get All Users!",
+			message: "Success get all users!",
 			data: users
 		});
 	} catch (error) {
@@ -35,9 +35,9 @@ const handleGetOneUser = async (req, res, next) => {
 
 		const user = await accessUserDataByRole(role, targetId);
 
-		if (!user) throwError("User not found", 200);
+		if (!user) throwError("User not found", 404);
 
-		return res.status(200).json({ code: 200, message: "Successfully Get One User!", data: user });
+		return res.status(200).json({ code: 200, message: "Successfully get one user!", data: user });
 	} catch (error) {
 		next(error);
 	}
@@ -52,7 +52,7 @@ const handleUpdateUserData = async (req, res, next) => {
 	try {
 		const { role } = req.user;
 		const { id: targetId } = req.params;
-		const dataToUpdate = { ...req.body };
+		const dataToUpdate = { ...req.dataToUpdate };
 
 		const result = await updateUserDataByRole(role, targetId, dataToUpdate);
 
@@ -81,7 +81,7 @@ const handleDeleteUserData = async (req, res, next) => {
 
 		const user = await accessUserDataByRole(role, targetId);
 
-		if (!user) throwError("User not found", 200);
+		if (!user) throwError("User not found", 404);
 
 		await deleteUserDataByRole(role, targetId);
 
