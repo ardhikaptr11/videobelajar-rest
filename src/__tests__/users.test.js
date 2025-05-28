@@ -93,12 +93,12 @@ describe("Users", () => {
 			});
 		});
 
-		it("should return 200 if it tries to read a non-existent user", async () => {
+		it("should return 404 if it tries to read a non-existent user", async () => {
 			const response = await request(app)
 				.get(`/api/v2/user/${nonExistUserId}`)
 				.set("Authorization", `Bearer ${adminToken}`);
 
-			expect(response.statusCode).toBe(200);
+			expect(response.statusCode).toBe(404);
 			expect(response.body.message).toBe("User not found");
 		});
 
@@ -135,13 +135,13 @@ describe("Users", () => {
 			});
 		});
 
-		it("should return 200 if it tries to update a non-existent user", async () => {
+		it("should return 404 if it tries to update a non-existent user", async () => {
 			const response = await request(app)
 				.patch(`/api/v2/user/${nonExistUserId}`)
 				.set("Authorization", `Bearer ${adminToken}`)
 				.send({ full_name: "John Peter Doe", email: "jp.doe@example.com" });
 
-			expect(response.statusCode).toBe(200);
+			expect(response.statusCode).toBe(404);
 			expect(response.body.message).toBe("User not found");
 		});
 
@@ -160,8 +160,6 @@ describe("Users", () => {
 				.patch(`/api/v2/user/${userId}`)
 				.set("Authorization", `Bearer ${adminToken}`)
 				.send({});
-
-			console.log(response.body);
 
 			expect(response.statusCode).toBe(400);
 			expect(response.body.message).toBe("Cannot proceed with empty data");
@@ -233,12 +231,12 @@ describe("Users", () => {
 			});
 		});
 
-		it("should return 200 if it tries to delete a non-existent user", async () => {
+		it("should return 404 if it tries to delete a non-existent user", async () => {
 			const response = await request(app)
 				.delete(`/api/v2/user/${nonExistUserId}`)
 				.set("Authorization", `Bearer ${adminToken}`);
 
-			expect(response.statusCode).toBe(200);
+			expect(response.statusCode).toBe(404);
 			expect(response.body.message).toBe("User not found");
 		});
 
