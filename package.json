@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "NODE_ENV=development nodemon src/index.js  --watch src/ --watch package.json --watch .env --watch docs.yaml",
+    "dev": "NODE_ENV=development nodemon src/index.js  --watch src/ --watch package.json --watch .env --watch docs/docs.yaml --watch docs/openapi.yaml",
     "test": "NODE_ENV=test jest --detectOpenHandles",
     "make:migration": "knex migrate:make --knexfile src/config/database.js",
     "make:seed": "knex seed:make --knexfile src/config/database.js",
@@ -23,6 +23,7 @@
     "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "js-yaml": "^4.1.0",
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
     "multer": "^1.4.5-lts.2",
@@ -30,8 +31,7 @@
     "nodemailer": "^7.0.3",
     "pg": "^8.15.6",
     "swagger-ui-express": "^5.0.1",
-    "uuid": "^11.1.0",
-    "yamljs": "^0.3.0"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@faker-js/faker": "^9.7.0",
